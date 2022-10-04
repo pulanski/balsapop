@@ -1,0 +1,92 @@
+use crate::ast::*;
+
+grammar;
+
+pub LiteralExpression: LiteralExpression = {
+    // <n: IntegerLiteral> => LiteralExpression::Integer{n},
+    <f: FloatLiteral> => LiteralExpression::Float{f},
+    <s: StringLiteral> => LiteralExpression::String{s},
+    // <b: BoolLiteral> => LiteralExpression::Bool{b},
+    // <c: CharLiteral> => LiteralExpression::Char{c},
+}
+
+// IntegerLiteral: i64 = {
+//     <n:r"[+-]?[0-9]+">
+//         => n.parse().unwrap(),
+// }
+
+FloatLiteral: f64 = {
+    <f:r"[+-]?([0-9]+(([.][0-9]*)|([.][0-9]+)))[e|E]?[+|-]?[0-9]+">
+        => f.parse().unwrap(),
+}
+
+StringLiteral: String = {
+    <s:r#""[^"]*""#> => s.to_string()[1..s.len() - 1].to_string(),
+}
+
+// DEC_LITERAL: u64 = {
+//     <digits:DIGIT+> => {
+//         digits.iter().fold(0, |acc, &d| acc * 10 + d as u64)
+//     }
+// }
+
+BIN_DIGIT = {
+    "0",
+    "1"
+}
+
+OCT_DIGIT = {
+    BIN_DIGIT,
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7"
+}
+
+DEC_DIGIT = {
+    OCT_DIGIT,
+    "8",
+    "9"
+}
+
+
+// DEC_DIGIT: char = {
+//     <s:r"[0-9]"> => s.chars().next().unwrap(),
+// }
+
+DEC_DIGIT_TAIL: char = {
+    // TODO maybe change the implementation here
+    // e.g. d.chars().next().unwrap()
+    <d:DEC_DIGIT> => d.chars().next().unwrap(),
+    <s:Underscore> => s.chars().next().unwrap(),
+}
+
+INTEGER_SUFFIX: () = {
+    <r"u8|u16|u32|u64|u128|usize|i8|i16|i32|i64|i128|isize">,
+}
+
+// Punctuation symbol tokens
+pub Plus = { "+" }
+pub Minus = { "-" }
+pub Star = { "*" }
+pub Slash = { "/" }
+pub Percent = { "%" }
+pub Caret = { "^" }
+pub Not = { "!" }
+pub And = { "&" }
+pub Or = { "|" }
+pub AndAnd = { "&&" }
+pub OrOr = { "||" }
+pub Underscore = { "_" };
+
+match {
+    r"\s*" => {}, // ignore whitespace
+    // r"//.*" => {}, // ignore comments
+    r"//[^\n\r]*[\n\r]*" => {}, // ignore comments
+    // This `_` means "add in all the other strings and
+    // regular expressions in the grammer here" (e.g.,
+    // `"("`).
+    _
+}

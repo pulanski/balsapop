@@ -1,0 +1,25 @@
+{
+  "name": "balsapop",
+  "displayName": "balsapop",
+  "description": "language extension for balsapop",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.71.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "balsa",
+      "aliases": ["Balsapop", "balsa"],
+      "extensions": [".balsa",".balsapop"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "balsa",
+      "scopeName": "source.balsapop",
+      "path": "./syntaxes/balsa.tmLanguage.json"
+    }]
+  }
+}

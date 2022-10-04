@@ -1,0 +1,5 @@
+rd_enabled = true
+fleet_id = "acfd80ca-67fe-4cb3-bf0d-232e9e9a533b"
+
+[build]
+sccache = "/Users/jkersey/.cargo/bin/sccache"
