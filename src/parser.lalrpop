@@ -30,13 +30,59 @@ StringLiteral: String = {
 //     }
 // }
 
-BIN_DIGIT = {
-    "0",
-    "1"
+// (DecimalDigit|_)
+pub(crate) DecimalDigitOrUnderscore: char = {
+    // TODO maybe change the implementation here
+    // to use either string or AST Data Structure
+    // e.g. d.chars().next().unwrap()
+    <d:DecimalDigit> => d.chars().next().unwrap(),
+    <s:Underscore> => s.chars().next().unwrap(),
 }
 
-OCT_DIGIT = {
-    BIN_DIGIT,
+///////////////////////////////
+// Numeric Literals          //
+//                           //
+// - Integer Literals        //
+// - Floating Point Literals //
+// - Mathematic Constants    //
+///////////////////////////////
+
+// TODO PICK A GRAMMAR NOTATION, EITHER EBNF OR WIRTH
+/////////////////////////////////////////////////////////////////////////////////////
+// Integer Literals                                                                //
+//                                                                                 //
+// Lexer                                                                           //
+//                                                                                 //
+// Grammar:                                                                        //
+//   IntegerLiteral = (DecimalLiteral | BinaryLiteral | OctalLiteral               //
+//                     | HexadecimalLiteral ) IntegerSuffix?                       //
+//   DecimalLiteral = DecimalDigit DecimalDigitOrUnderscore*                       //
+//   HexadecimalLiteral = HexadecimalLiteralPrefix HexadecimalDigitOrUnderscore*   //
+//                   HexadecimalDigit HexadecimalDigitOrUnderscore*                //
+//   OctalLiteral = OctalLiteralPrefix OctalDigitOrUnderscore* OctalDigit          //
+//                   OctalDigitOrUnderscore*                                       //
+//   BinaryLiteral = BinaryLiteralPrefix BinaryDigitOrUnderscore* BinaryDigit      //
+//                   BinaryDigitOrUnderscore*                                      //
+//   HexadecimalDigitOrUnderscore = HexadecimalDigit | Score                       //
+//   BinaryDigitOrUnderscore = BinaryDigit | Underscore                            //
+//   HexadecimalDigit = OctalDigit | "8".."9" | "a".."f" | "A".."F"                //
+//   OctalDigit = BinaryDigit | "2".."7"                                           //
+//   BinaryDigit = "0" | "1"                                                       //
+//   HexadecimalLiteralPrefix = "0x" OR "0x" | "0X" <- TODO maybe use this instead //
+//   OctalLiteralPrefix = "0b" OR "0o" | "0O" <- TODO maybe use this instead       //
+//   BinaryLiteralPrefix = "0b" OR "0b" | "0B" <- TODO maybe use this instead      //
+//   IntegerSuffix = "i8" | "i16" | "i32" | "i64" | `i128" | "isize"               //
+//                 | "u8" | "u16" | "u32" | "u64" | "u128" | "usize"               //
+/////////////////////////////////////////////////////////////////////////////////////
+
+DecimalDigit = {
+    OctalDigit,
+    "8",
+    "9"
+}
+
+OctalDigit = {
+    BinaryDigit,
     "2",
     "3",
     "4",
@@ -45,41 +91,57 @@ OCT_DIGIT = {
     "7"
 }
 
-DEC_DIGIT = {
-    OCT_DIGIT,
-    "8",
-    "9"
+BinaryDigit = {
+    "0",
+    "1"
 }
 
+pub(crate) BinaryLiteralPrefix = { "0b" }
+pub(crate) OctalLiteralPrefix = { "0o" }
+pub(crate) HexadecimalLiteralPrefix = { "0x" }
 
-// DEC_DIGIT: char = {
-//     <s:r"[0-9]"> => s.chars().next().unwrap(),
-// }
-
-DEC_DIGIT_TAIL: char = {
-    // TODO maybe change the implementation here
-    // e.g. d.chars().next().unwrap()
-    <d:DEC_DIGIT> => d.chars().next().unwrap(),
-    <s:Underscore> => s.chars().next().unwrap(),
-}
-
-INTEGER_SUFFIX: () = {
+pub(crate) IntegerSuffix: () = {
     <r"u8|u16|u32|u64|u128|usize|i8|i16|i32|i64|i128|isize">,
 }
 
-// Punctuation symbol tokens
-pub Plus = { "+" }
-pub Minus = { "-" }
-pub Star = { "*" }
-pub Slash = { "/" }
-pub Percent = { "%" }
-pub Caret = { "^" }
-pub Not = { "!" }
-pub And = { "&" }
-pub Or = { "|" }
-pub AndAnd = { "&&" }
-pub OrOr = { "||" }
-pub Underscore = { "_" };
+////////////////////
+// Float Literals //
+////////////////////
+
+pub(crate) FloatSuffix: () = {
+    <r"f32|f64">,
+}
+
+///////////////////////////////
+// Punctuation symbol tokens //
+///////////////////////////////
+
+pub(crate) Plus = { "+" }
+pub(crate) Minus = { "-" }
+pub(crate) Star = { "*" }
+pub(crate) Slash = { "/" }
+pub(crate) Percent = { "%" }
+pub(crate) Caret = { "^" }
+pub(crate) Not = { "!" }
+pub(crate) And = { "&" }
+pub(crate) Or = { "|" }
+pub(crate) AndAnd = { "&&" }
+pub(crate) OrOr = { "||" }
+pub(crate) MinusEqual = { "-=" }
+pub(crate) StarEqual = { "*=" }
+pub(crate) SlashEqual = { "/=" }
+pub(crate) PercentEqual = { "%=" }
+pub(crate) CaretEqual = { "^=" }
+pub(crate) AndEqual = { "&=" }
+pub(crate) OrEqual = { "|=" }
+pub(crate) Equal = { "=" }
+pub(crate) EqualEqual = { "==" }
+pub(crate) NotEqual = { "!=" }
+pub(crate) LessThan = { "<" }
+pub(crate) LessThanEqual = { "<=", "≤" }
+pub(crate) GreaterThan = { ">" }
+pub(crate) GreaterThanEqual = { ">=", "≥" }
+pub(crate) Underscore = { "_" };
 
 match {
     r"\s*" => {}, // ignore whitespace
@@ -87,6 +149,6 @@ match {
     r"//[^\n\r]*[\n\r]*" => {}, // ignore comments
     // This `_` means "add in all the other strings and
     // regular expressions in the grammer here" (e.g.,
-    // `"("`).
+    // `(`).
     _
 }

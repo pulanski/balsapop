@@ -2,21 +2,28 @@ mod ast;
 mod cli;
 mod db;
 
-use std::{
-    fs::read_to_string,
-    path::PathBuf,
-};
+use std::{fs::read_to_string, path::PathBuf};
 
-use clap::Parser as ClapParser;
+use clap::Parser;
 use cli::BalsapopCli;
-use miette::Result;
+use miette::{IntoDiagnostic, Result};
 
 use crate::cli::FileNotFound;
 
 #[derive(Debug)]
 struct SourceFile {
-    path:     PathBuf,
+    path: PathBuf,
     contents: ProgramSource,
+}
+
+impl SourceFile {
+    fn new(path: PathBuf) -> Result<Self> {
+        let text = read_to_string(&path).into_diagnostic()?;
+        Ok(Self {
+            path,
+            contents: ProgramSource { text },
+        })
+    }
 }
 
 #[derive(Debug)]
@@ -91,8 +98,20 @@ pub(crate) fn get_source_file(
                     return Err(Err(FileNotFound {}.into()));
                 }
             };
+            // TODO refactor to more idiomatic Rust
+            // Handle the error in the new function
+            // new should return a Result
+            // if error, propagate the error to the caller
+            // e.g. let source_file =
+            // SourceFile::new(source_path).into_diagnostic()?; <-- this maybe?
+            // Ok(Box::new(SourceFile::new(source_path).unwrap_err(
+            // //     path:     source_path,
+            //     contents: ProgramSource { text: source_str },
+            // })
+            // )))
+
             Box::new(SourceFile {
-                path:     source_path,
+                path: source_path,
                 contents: ProgramSource { text: source_str },
             })
         }
@@ -104,7 +123,7 @@ pub(crate) fn get_source_file(
 }
 
 #[cfg(test)]
-mod parser_test_suite {
+mod cli_usage_test_suite {
     use super::*;
     use pretty_assertions::assert_eq;
 
@@ -126,22 +145,37 @@ mod parser_test_suite {
         let source_file = get_source_file(None);
         assert!(source_file.is_err());
     }
+}
+
+// TODO Have sections like the following
+// NonTerminals (e.g. Expression, Statement, etc.)
+// Terminals (e.g. Identifier, Number, etc.)
+#[cfg(test)]
+mod parser_test_suite {
+    use super::*;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn test_parse_string_literal_expression() {
         let ast = parser::LiteralExpressionParser::new()
             .parse(r#""Hello""#)
             .unwrap();
-        assert_eq!(ast, ast::LiteralExpression::String {
-            s: "Hello".to_string(),
-        });
+        assert_eq!(
+            ast,
+            ast::LiteralExpression::String {
+                s: "Hello".to_string(),
+            }
+        );
 
         let ast = parser::LiteralExpressionParser::new()
             .parse(r#""Hello, world!""#)
             .unwrap();
-        assert_eq!(ast, ast::LiteralExpression::String {
-            s: "Hello, world!".to_string(),
-        });
+        assert_eq!(
+            ast,
+            ast::LiteralExpression::String {
+                s: "Hello, world!".to_string(),
+            }
+        );
     }
 
     // #[test]
@@ -190,12 +224,18 @@ mod parser_test_suite {
     // }
 }
 
+/////////////////////////////////////////////////////
+/// Verifies the correctness of the parser         //
+/// when it comes to both lexing tokens as well as //
+/// parsing nonterminals used in the grammar.      //
+/////////////////////////////////////////////////////
 #[cfg(test)]
 mod lexer_test_suite {
     use super::*;
 
-    // TODO maybe in future expand to housing tokens along with their lexemes
-    // and spans in well-defined data structures
+    // TODO maybe in future expand to deserializing parsed nonterminals into
+    // well-defined data structures housing tokens along with their lexemes
+    // and spans. Similar to how lexing is done in Logos.
 
     #[test]
     fn test_lex_punctuation() {
@@ -212,5 +252,56 @@ mod lexer_test_suite {
         assert!(parser::OrOrParser::new().parse("||").is_ok());
         assert!(parser::UnderscoreParser::new().parse("_").is_ok());
         // assert!(parser::EqualsParser::new().parse("=").is_ok());
+    }
+
+    #[test]
+    fn test_lex_numeric_literal_non_terminals() {
+        // Integer Literal Prefix Non-Terminals
+        assert!(parser::BinaryLiteralPrefixParser::new().parse("0b").is_ok());
+        assert!(parser::OctalLiteralPrefixParser::new().parse("0o").is_ok());
+        assert!(parser::HexadecimalLiteralPrefixParser::new()
+            .parse("0x")
+            .is_ok());
+
+        // Integer Literal Suffix Non-Terminals
+
+        // - Unsigned Integer Literal Suffix Non-Terminals
+        assert!(parser::IntegerSuffixParser::new().parse("u8").is_ok());
+        assert!(parser::IntegerSuffixParser::new().parse("u16").is_ok());
+        assert!(parser::IntegerSuffixParser::new().parse("u32").is_ok());
+        assert!(parser::IntegerSuffixParser::new().parse("u64").is_ok());
+        assert!(parser::IntegerSuffixParser::new().parse("u128").is_ok());
+        assert!(parser::IntegerSuffixParser::new().parse("usize").is_ok());
+
+        // - Signed Integer Literal Suffix Non-Terminals
+        assert!(parser::IntegerSuffixParser::new().parse("i8").is_ok());
+        assert!(parser::IntegerSuffixParser::new().parse("i16").is_ok());
+        assert!(parser::IntegerSuffixParser::new().parse("i32").is_ok());
+        assert!(parser::IntegerSuffixParser::new().parse("i64").is_ok());
+        assert!(parser::IntegerSuffixParser::new().parse("i128").is_ok());
+        assert!(parser::IntegerSuffixParser::new().parse("isize").is_ok());
+
+        // Float Literal Suffix Non-Terminals
+        assert!(parser::FloatSuffixParser::new().parse("f32").is_ok());
+        assert!(parser::FloatSuffixParser::new().parse("f64").is_ok());
+
+        // Float Literal Exponent Non-Terminals
+
+        // Intermediate Non-Terminals (e.g. DecimalDigitOrUnderscore, etc.)
+
+        // DecimalDigitOrUnderscore
+        let ast = parser::DecimalDigitOrUnderscoreParser::new()
+            .parse("1")
+            .unwrap();
+        assert_eq!(ast, '1'); // <-- TODO maybe change this to be a string
+                              // rather than a char          |
+                              //                             V
+        let ast = parser::DecimalDigitOrUnderscoreParser::new()
+            .parse("_")
+            .unwrap();
+        assert_eq!(ast, '_');
+
+        // Binary Literals
+        // let ast = parser::BinaryLiteralParser::new().parse("0b0").unwrap();
     }
 }

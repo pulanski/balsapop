@@ -52,4 +52,9 @@ pub(crate) struct BalsapopCli {
     url(docsrs),
     help("Please provide a valid source file path.")
 )]
-pub(crate) struct FileNotFound {}
+pub(crate) struct FileNotFound {
+    // TODO implement this
+// #[source]
+// pub(crate) source: std::io::Error,
+// pub(crate) path:   PathBuf,
+}
