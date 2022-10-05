@@ -224,11 +224,31 @@ mod parser_test_suite {
     // }
 }
 
-/////////////////////////////////////////////////////
-/// Verifies the correctness of the parser         //
-/// when it comes to both lexing tokens as well as //
-/// parsing nonterminals used in the grammar.      //
-/////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+/// Verifies the correctness of the parser                 //
+/// when it comes to both lexing tokens as well as         //
+/// parsing nonterminals used in the grammar.              //
+///                                                        //
+/// At first glance, the APIs here may seem a bit          //
+/// odd since they all include the substring               //
+/// "Parser" and this test suite is intended to            //
+/// test the correctness of the Lexer.                     //
+///                                                        //
+/// While this may be the case, it is a result of the      //
+/// fact that we're using LALRPOP to generate the parser,  //
+/// compared to other parsing methods, since by definition //
+/// an LR(1) parser can accept a superset of the grammars  //
+/// accepted by an LL(1) parser. However, what comes with  //
+/// this is that LALRPOP tightly couples the lexer and     //
+/// parser for ease of use. In the future, this            //
+/// implementation detail may be refactored in favor of    //
+/// using a different lexer (e.g. Logos or something else) //
+/// and decoupling the lexing phase from that of parsing.  //
+/// Regardless, the following test suite is written with   //
+/// the intention of testing the lexing capabilities of    //
+/// the compiler when it comes to producing tokens used    //
+/// in the grammar to create the AST.                      //
+/////////////////////////////////////////////////////////////
 #[cfg(test)]
 mod lexer_test_suite {
     use super::*;
@@ -250,12 +270,16 @@ mod lexer_test_suite {
         assert!(parser::OrParser::new().parse("|").is_ok());
         assert!(parser::AndAndParser::new().parse("&&").is_ok());
         assert!(parser::OrOrParser::new().parse("||").is_ok());
+        assert!(parser::MinusEqualsParser::new().parse("-=").is_ok());
+        //
+
         assert!(parser::UnderscoreParser::new().parse("_").is_ok());
+        // assert!(parser::)
         // assert!(parser::EqualsParser::new().parse("=").is_ok());
     }
 
     #[test]
-    fn test_lex_numeric_literal_non_terminals() {
+    fn test_lex_numeric_literals() {
         // Integer Literal Prefix Non-Terminals
         assert!(parser::BinaryLiteralPrefixParser::new().parse("0b").is_ok());
         assert!(parser::OctalLiteralPrefixParser::new().parse("0o").is_ok());
@@ -288,6 +312,8 @@ mod lexer_test_suite {
         // Float Literal Exponent Non-Terminals
 
         // Intermediate Non-Terminals (e.g. DecimalDigitOrUnderscore, etc.)
+        // These need to return chars as they are used within other
+        // nonterminals which can filter out the underscores
 
         // DecimalDigitOrUnderscore
         let ast = parser::DecimalDigitOrUnderscoreParser::new()

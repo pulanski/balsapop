@@ -127,7 +127,7 @@ pub(crate) And = { "&" }
 pub(crate) Or = { "|" }
 pub(crate) AndAnd = { "&&" }
 pub(crate) OrOr = { "||" }
-pub(crate) MinusEqual = { "-=" }
+pub(crate) MinusEquals= { "-=" }
 pub(crate) StarEqual = { "*=" }
 pub(crate) SlashEqual = { "/=" }
 pub(crate) PercentEqual = { "%=" }
