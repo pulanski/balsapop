@@ -1,6 +1,7 @@
 mod ast;
 mod cli;
 mod db;
+mod parser_errors;
 
 use std::{fs::read_to_string, path::PathBuf};
 
@@ -70,16 +71,36 @@ fn main() -> Result<()> {
         Err(err) => return err,
     };
 
-    println!(
-        "Source file: {:?}, {:?}",
-        source_file.path, source_file.contents.text
-    );
+    println!("Source file: {:#?}", source_file);
     // parser::LiteralExpressionParser::new().parse("22");
     let ast = parser::LiteralExpressionParser::new()
         .parse("2212312312312.2e+10")
         .unwrap();
 
-    println!("AST: {:?}", ast);
+    // println!("AST: {:?}", ast);
+
+    let float_exponent = parser::FloatExponentParser::new().parse("e+_");
+    match float_exponent {
+        Ok(_) => println!("Float exponent parsed successfully"),
+        Err(err) => {
+            println!("Error parsing float exponent: {:?}", err);
+            match err {
+                lalrpop_util::ParseError::User {
+                    error:
+                        parser_errors::ParserError::ParserInternalsInvalidFloatExponent,
+                } => return Err(parser_errors::InvalidFloatExponent {}.into()),
+                _ => {
+                    println!("Other error");
+                }
+            }
+            let err = parser_errors::InvalidFloatExponent {};
+            err.to_string();
+        }
+    }
+
+    // collect all of the errors https://lalrpop.github.io/lalrpop/tutorial/008_error_recovery.html
+    // then loop through them, match on the error type, and add the corresponding
+    // error to the diagnostics report
 
     // parser::LiteralExpressionParser::new().parse(&source_file.contents.text)?;
 
@@ -152,6 +173,8 @@ mod cli_usage_test_suite {
 #[cfg(test)]
 mod parser_test_suite {
     use super::*;
+    use crate::parser_errors::ParserError::*;
+    use lalrpop_util::ParseError;
     use pretty_assertions::assert_eq;
 
     #[test]
@@ -674,6 +697,49 @@ mod parser_test_suite {
         let ast = parser::LiteralExpressionParser::new().parse("0.0").unwrap();
         assert_eq!(ast, ast::LiteralExpression::Float { f: 0.0 });
 
+        // - PlusOrMinusSign Non-Terminals
+        assert_eq!(parser::PlusOrMinusSignParser::new().parse("+"), Ok('+'));
+        assert_eq!(parser::PlusOrMinusSignParser::new().parse("-"), Ok('-'));
+
+        assert_eq!(
+            parser::FloatExponentParser::new().parse("e+_"),
+            Err(ParseError::User {
+                error: ParserInternalsInvalidFloatExponent,
+            })
+        );
+        assert_eq!(
+            parser::FloatExponentParser::new().parse("E-_"),
+            Err(ParseError::User {
+                error: ParserInternalsInvalidFloatExponent,
+            })
+        );
+
+        assert_eq!(
+            parser::FloatExponentParser::new().parse("e+3"),
+            Ok(String::from("e+3"))
+        );
+        assert_eq!(
+            parser::FloatExponentParser::new().parse("E-3"),
+            Ok(String::from("E-3"))
+        );
+        assert_eq!(
+            parser::FloatExponentParser::new().parse("e+123"),
+            Ok(String::from("e+123"))
+        );
+        assert_eq!(
+            parser::FloatExponentParser::new().parse("E-123"),
+            Ok(String::from("E-123"))
+        );
+        assert_eq!(
+            parser::FloatExponentParser::new().parse("e+_0_1_2_3_4_5_6_7_8_9"),
+            Ok(String::from("e+_0_1_2_3_4_5_6_7_8_9"))
+        );
+        assert_eq!(
+            parser::FloatExponentParser::new().parse("E-_0_1_2_3_4_5_6_7_8_9"),
+            Ok(String::from("E-_0_1_2_3_4_5_6_7_8_9"))
+        );
+        assert!(parser::FloatExponentParser::new().parse("e+").is_err());
+
         // let ast = parser::LiteralExpressionParser::new()
         //     .parse("-22.0")
         //     .unwrap();
@@ -725,10 +791,13 @@ mod parser_test_suite {
 #[cfg(test)]
 mod lexer_test_suite {
     use super::*;
+    use pretty_assertions::assert_eq;
 
     // TODO maybe in future expand to deserializing parsed nonterminals into
     // well-defined data structures housing tokens along with their lexemes
     // and spans. Similar to how lexing is done in Logos.
+    // In contrast, the current implementation is better for having well-defined,
+    // and simple to reason about action code within the parser
 
     // TODO maybe add a redundant lexer implementation via Logos
     // for emitting tokens along with their lexemes, spans, and usage in the
@@ -846,7 +915,7 @@ mod lexer_test_suite {
 
     #[test]
     fn test_lex_numeric_literals() {
-        // Integer Literal Prefix Non-Terminals
+        // Integer Literal Prefix Terminals
         assert_eq!(
             parser::BinaryLiteralPrefixParser::new().parse("0b"),
             Ok(String::from("0b"))
@@ -872,9 +941,9 @@ mod lexer_test_suite {
             Ok(String::from("0X"))
         );
 
-        // Integer Literal Suffix Non-Terminals
+        // Integer Literal Suffix Terminals
 
-        // - Unsigned Integer Literal Suffix Non-Terminals
+        // - Unsigned Integer Literal Suffix Terminals
         assert_eq!(
             parser::IntegerSuffixParser::new().parse("u8"),
             Ok(String::from("u8"))
@@ -900,7 +969,7 @@ mod lexer_test_suite {
             Ok(String::from("usize"))
         );
 
-        // - Signed Integer Literal Suffix Non-Terminals
+        // - Signed Integer Literal Suffix Terminals
         assert_eq!(
             parser::IntegerSuffixParser::new().parse("i8"),
             Ok(String::from("i8"))
@@ -926,13 +995,13 @@ mod lexer_test_suite {
             Ok(String::from("isize"))
         );
 
-        // Digit Non-Terminals
+        // Digit Terminals
 
-        // - Binary Digit Non-Terminals
+        // - Binary Digit Terminals
         assert_eq!(parser::BinaryDigitParser::new().parse("0"), Ok('0'));
         assert_eq!(parser::BinaryDigitParser::new().parse("1"), Ok('1'));
 
-        // - Octal Digit Non-Terminals
+        // - Octal Digit Terminals
         assert_eq!(parser::OctalDigitParser::new().parse("0"), Ok('0'));
         assert_eq!(parser::OctalDigitParser::new().parse("1"), Ok('1'));
         assert_eq!(parser::OctalDigitParser::new().parse("2"), Ok('2'));
@@ -942,7 +1011,7 @@ mod lexer_test_suite {
         assert_eq!(parser::OctalDigitParser::new().parse("6"), Ok('6'));
         assert_eq!(parser::OctalDigitParser::new().parse("7"), Ok('7'));
 
-        // - Decimal Digit Non-Terminals
+        // - Decimal Digit Terminals
         assert_eq!(parser::DecimalDigitParser::new().parse("0"), Ok('0'));
         assert_eq!(parser::DecimalDigitParser::new().parse("1"), Ok('1'));
         assert_eq!(parser::DecimalDigitParser::new().parse("2"), Ok('2'));
@@ -954,7 +1023,7 @@ mod lexer_test_suite {
         assert_eq!(parser::DecimalDigitParser::new().parse("8"), Ok('8'));
         assert_eq!(parser::DecimalDigitParser::new().parse("9"), Ok('9'));
 
-        // - Hexadecimal Digit Non-Terminals
+        // - Hexadecimal Digit Terminals
         assert_eq!(parser::HexadecimalDigitParser::new().parse("0"), Ok('0'));
         assert_eq!(parser::HexadecimalDigitParser::new().parse("1"), Ok('1'));
         assert_eq!(parser::HexadecimalDigitParser::new().parse("2"), Ok('2'));
@@ -982,10 +1051,18 @@ mod lexer_test_suite {
         // Floating Point Literals //
         /////////////////////////////
 
-        // Float Literal Suffix Non-Terminals
-        assert!(parser::FloatSuffixParser::new().parse("f32").is_ok());
-        assert!(parser::FloatSuffixParser::new().parse("f64").is_ok());
+        // Float Literal Suffix Terminals
+        assert_eq!(
+            parser::FloatSuffixParser::new().parse("f32"),
+            Ok(String::from("f32"))
+        );
+        assert_eq!(
+            parser::FloatSuffixParser::new().parse("f64"),
+            Ok(String::from("f64"))
+        );
 
-        // Float Literal Exponent Non-Terminals
+        // Float Literal Exponent Symbol Terminals
+        assert_eq!(parser::ExponentialSymbolParser::new().parse("e"), Ok('e'));
+        assert_eq!(parser::ExponentialSymbolParser::new().parse("E"), Ok('E'));
     }
 }

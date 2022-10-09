@@ -1,6 +1,14 @@
 use crate::ast::*;
+use crate::parser_errors::*;
+
+use lalrpop_util::ParseError;
 
 grammar;
+
+extern {
+    // type Error = Calculator6Error;
+    type Error = ParserError;
+}
 
 pub LiteralExpression: LiteralExpression = {
     // <n: IntegerLiteral> => LiteralExpression::Integer{n},
@@ -157,8 +165,8 @@ pub(crate) BinaryLiteral: u128 = {
         binary_digits.reverse();
         let mut result = 0;
         let mut digit_count = 0;
-        for (i, d) in binary_digits.iter().enumerate() {
-            if d == &'_' {
+        for d in binary_digits {
+            if d == '_' {
                 continue;
             }
             result += d.to_digit(10).unwrap() * 2u32.pow(digit_count as u32);
@@ -195,7 +203,8 @@ pub(crate) BinaryDigitOrUnderscore: char = {
 // "0".."9" | "a".."f" | "A".."F"
 pub(crate) HexadecimalDigit: char = {
     <d:DecimalDigit> => d,
-    <h:r"[a-fA-F]"> => h.chars().next().unwrap(),
+    <e:ExponentialSymbol> => e,
+    <h:r"[a-dfA-DF]"> => h.chars().next().unwrap(),
 }
 
 // "0".."9"
@@ -243,6 +252,43 @@ pub(crate) IntegerSuffix: String = {
 // Float Literals //
 ////////////////////
 
+//  (e|E) (+|-)? (DEC_DIGIT|_)* DEC_DIGIT (DEC_DIGIT|_)* <-- TODO SHOULD BE REFACTORED TO THIS PRODUCTION
+// (e|E) (+|-)? (DEC_DIGIT|_)+ <-- CURRENTLY USING THIS PRODUCTION (due to ambiguity in the above production from the parser)
+pub(crate) FloatExponent: String = {
+    <exponential_symbol:ExponentialSymbol> <sign:PlusOrMinusSign?> <decimal_digits:DecimalDigitOrUnderscore+> =>? {
+        let mut result = String::new();
+
+        // check if decimal_digits contains at least one digit
+        if !decimal_digits.iter().any(|d| d.is_digit(10)) {
+            return Err(ParseError::User {
+                error: ParserError::ParserInternalsInvalidFloatExponent
+            })
+        }
+
+        result.push(exponential_symbol);
+        if let Some(sign) = sign {
+            result.push(sign);
+        }
+
+        for d in decimal_digits {
+            result.push(d);
+        }
+        Ok(result)
+    }
+}
+
+// "e" | "E"
+pub(crate) ExponentialSymbol: char = {
+    <e:r"[eE]"> => e.chars().next().unwrap(),
+}
+
+// "+" | "-"
+pub(crate) PlusOrMinusSign: char = {
+    <sign:Plus> => sign,
+    <sign:Minus> => sign,
+}
+
+// "f32" | "f64"
 pub(crate) FloatSuffix: String = {
     <float_suffix:r"f32|f64"> => float_suffix.to_string(),
 }
@@ -354,6 +400,7 @@ pub(crate) GreaterThanEqual: String = {
     <greater_than_equal:">="> => greater_than_equal.to_string(),
     <greater_than_equal:"≥"> => greater_than_equal.to_string(),
 }
+
 pub(crate) Underscore: char = {
     <underscore:"_"> => underscore.chars().next().unwrap(),
 }
