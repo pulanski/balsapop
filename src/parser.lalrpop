@@ -6,37 +6,218 @@ use lalrpop_util::ParseError;
 grammar;
 
 extern {
-    // type Error = Calculator6Error;
-    type Error = ParserError;
+    type Error = InternalParserError;
 }
 
 pub LiteralExpression: LiteralExpression = {
     // <n: IntegerLiteral> => LiteralExpression::Integer{n},
-    <f: FloatLiteral> => LiteralExpression::Float{f},
+    // <f: FloatLiteral> => LiteralExpression::Float{f},
     <s: StringLiteral> => LiteralExpression::String{s},
     // <b: BoolLiteral> => LiteralExpression::Bool{b},
     // <c: CharLiteral> => LiteralExpression::Char{c},
 }
 
-// IntegerLiteral: i64 = {
-//     <n:r"[+-]?[0-9]+">
-//         => n.parse().unwrap(),
+//////////////////////////////////////////////////////////////////////////////
+// Keywords (e.g. `as`, `if`, `else`, etc.) are not allowed as identifiers. //
+//////////////////////////////////////////////////////////////////////////////
+
+// "as"
+pub(crate) As: Keyword = {
+    "as" => Keyword::As,
+}
+
+// "break"
+pub(crate) Break: Keyword = {
+    "break" => Keyword::Break,
+}
+
+// "const"
+pub(crate) Const: Keyword = {
+    "const" => Keyword::Const,
+}
+
+// "continue"
+pub(crate) Continue: Keyword = {
+    "continue" => Keyword::Continue,
+}
+
+// "else"
+pub(crate) Else: Keyword = {
+    "else" => Keyword::Else,
+}
+
+// "enum"
+pub(crate) Enum: Keyword = {
+    "enum" => Keyword::Enum,
+}
+
+// "false"
+pub(crate) False: Keyword = {
+    "false" => Keyword::False,
+}
+
+// "fn"
+pub(crate) Fn: Keyword = {
+    "fn" => Keyword::Fn,
+}
+
+// "for"
+pub(crate) For: Keyword = {
+    "for" => Keyword::For,
+}
+
+// "if"
+pub(crate) If: Keyword = {
+    "if" => Keyword::If,
+}
+
+// "impl"
+pub(crate) Impl: Keyword = {
+    "impl" => Keyword::Impl,
+}
+
+// "in"
+pub(crate) In: Keyword = {
+    "in" => Keyword::In,
+}
+
+// "loop"
+pub(crate) Loop: Keyword = {
+    "loop" => Keyword::Loop,
+}
+
+// "match"
+pub(crate) Match: Keyword = {
+    "match" => Keyword::Match,
+}
+
+// "mod"
+pub(crate) Mod: Keyword = {
+    "mod" => Keyword::Mod,
+}
+
+// "move"
+// pub(crate) Move: Keyword = {
+//     "move" => Keyword::Move,
 // }
 
-FloatLiteral: f64 = {
-    <f:r"[+-]?([0-9]+(([.][0-9]*)|([.][0-9]+)))[e|E]?[+|-]?[0-9]+">
-        => f.parse().unwrap(),
+// "mut"
+// pub(crate) Mut: Keyword = {
+//     "mut" => Keyword::Mut,
+// }
+
+// "pub"
+pub(crate) Pub: Keyword = {
+    "pub" => Keyword::Pub,
 }
+
+// "ref"
+// pub(crate) Ref: Keyword = {
+//     "ref" => Keyword::Ref,
+// }
+
+// "return"
+pub(crate) Return: Keyword = {
+    "return" => Keyword::Return,
+}
+
+// "self"
+pub(crate) SelfLowercase: Keyword = {
+    "self" => Keyword::SelfLowercase,
+}
+
+// "Self"
+pub(crate) SelfUppercase: Keyword = {
+    "Self" => Keyword::SelfUppercase,
+}
+
+// "static"
+pub(crate) Static: Keyword = {
+    "static" => Keyword::Static,
+}
+
+// "struct"
+pub(crate) Struct: Keyword = {
+    "struct" => Keyword::Struct,
+}
+
+// "super"
+pub(crate) Super: Keyword = {
+    "super" => Keyword::Super,
+}
+
+// "trait"
+pub(crate) Trait: Keyword = {
+    "trait" => Keyword::Trait,
+}
+
+// "true"
+pub(crate) True: Keyword = {
+    "true" => Keyword::True,
+}
+
+// "type"
+pub(crate) Type: Keyword = {
+    "type" => Keyword::Type,
+}
+
+// "use"
+pub(crate) Use: Keyword = {
+    "use" => Keyword::Use,
+}
+
+// "where"
+// pub(crate) Where: Keyword = {
+//     "where" => Keyword::Where,
+// }
+
+// "while"
+pub(crate) While: Keyword = {
+    "while" => Keyword::While,
+}
+
+///////////////////////////////////
+// Character and String Literals //
+///////////////////////////////////
+
+// pub(crate) CharLiteral: char = {
+//     <left_apostrophe:Apostrophe> <character:r"[^\n\r\t']"> <right_apostrophe:Apostrophe> => character.next().unwrap(),
+// }
+
+////////////////////////////////////////////////
+// Character and String Literal symbol tokens //
+////////////////////////////////////////////////
+
+pub(crate) Apostrophe: char = {
+    <apostrophe:"'"> => apostrophe.chars().next().unwrap(),
+}
+
+pub(crate) Quote: char = {
+    <quote:"\""> => quote.chars().next().unwrap(),
+}
+
+// TODO maybe in the future refactor to incorporating the following
+// into the parsing strategy of String and Charater literals
+
+// pub(crate) QuoteEscape: String = {
+//     <esc:r"\'"> => String::from(esc),
+//     <esc:r#"\""#> => String::from(esc),
+// }
+
+// pub(crate) UnicodeEscape = {
+//     <"\\u{" n: HexDigit+ "}" > => {
+//         let n = u32::from_str_radix(n, 16).unwrap();
+//         char::from_u32(n).unwrap()
+//     },
+//     <"\\u" n: HexDigit{4} > => {
+//         let n = u32::from_str_radix(n, 16).unwrap();
+//         char::from_u32(n).unwrap()
+//     },
+// }
 
 StringLiteral: String = {
     <s:r#""[^"]*""#> => s.to_string()[1..s.len() - 1].to_string(),
 }
-
-// DEC_LITERAL: u64 = {
-//     <digits:DIGIT+> => {
-//         digits.iter().fold(0, |acc, &d| acc * 10 + d as u64)
-//     }
-// }
 
 ///////////////////////////////
 // Numeric Literals          //
@@ -117,20 +298,42 @@ pub(crate) HexadecimalLiteral: u128 = {
                 'D' => {result += 13 * 16_u128.pow(digit_count as u32);},
                 'E' => {result += 14 * 16_u128.pow(digit_count as u32);},
                 'F' => {result += 15 * 16_u128.pow(digit_count as u32);},
-                _ => {panic!("Invalid hexadecimal digit: {}", d);},
+                _ => unreachable!(),
             }
             digit_count += 1;
         }
+        // if result is larger than u128::MAX, then it is an error
+        if result > u128::MAX {
+            panic!("Integer literal is too large");
+        }
+// 340_282_366_920_938_463_463_374_607_431_768_211_455u128
         result as u128
     }
 }
 
+// DEC_LITERAL :
+//    DEC_DIGIT (DEC_DIGIT|_)*
 pub(crate) DecimalLiteral: u128 = {
-    <decimal_digits:DecimalDigitOrUnderscore+> => {
-        let decimal_digits = decimal_digits.iter().filter(|&&d| d != '_').collect::<String>();
-        decimal_digits.parse().unwrap()
+    <start_decimal_digit:DecimalDigit> <end_decimal_digits:DecimalDigitOrUnderscore*> => {
+        let mut result = String::from(start_decimal_digit);
+        for decimal_digit in end_decimal_digits {
+            if decimal_digit == '_' {
+                continue;
+            }
+            result.push(decimal_digit);
+        }
+        // if result is larger than u128::MAX, then it is an error
+        // if result > u128::MAX {
+        //     panic!("Integer literal is too large");
+        // }
+        return result.parse::<u128>().unwrap();
     }
 }
+
+//     // <decimal_digits:DecimalDigitOrUnderscore+> => {
+    //     let decimal_digits = decimal_digits.iter().filter(|&&d| d != '_').collect::<String>();
+    //     decimal_digits.parse().unwrap()
+    // }
 
 // TODO SHOULD BE REFACTORED TO OctalLiteralPrefix OctalDigitOrUnderscore* OctalDigit OctalDigitOrUnderscore*
 // OctalLiteralPrefix OctalDigitOrUnderscore*
@@ -252,6 +455,33 @@ pub(crate) IntegerSuffix: String = {
 // Float Literals //
 ////////////////////
 
+// FLOAT_LITERAL :
+//       DEC_LITERAL . (not immediately followed by ., _ or an XID_Start character)
+//    | DEC_LITERAL FLOAT_EXPONENT
+//    | DEC_LITERAL . DEC_LITERAL FLOAT_EXPONENT?
+//    | DEC_LITERAL (. DEC_LITERAL)? FLOAT_EXPONENT? FLOAT_SUFFIX
+pub(crate) FloatLiteral: f64 = {
+    <start_decimal_literal:DecimalLiteral> <dot:Dot> <end_decimal_literal:DecimalLiteral> <exponent:FloatExponent?> => {
+        let mut result = start_decimal_literal.to_string();
+        result.push(dot);
+        result.push_str(&end_decimal_literal.to_string());
+        if let Some(exponent) = exponent {
+            result.push_str(&exponent.to_string());
+        }
+        result.parse::<f64>().unwrap()
+    },
+    <decimal_literal:DecimalLiteral> <exponent:FloatExponent> => {
+        let mut result = decimal_literal.to_string();
+        result.push_str(&exponent.to_string().replace("_", ""));
+        result.parse::<f64>().unwrap()
+    },
+    <decimal_literal:DecimalLiteral> <dot:Dot> => {
+        let mut result = decimal_literal.to_string();
+        result.push(dot);
+        result.parse::<f64>().unwrap()
+    },
+}
+
 //  (e|E) (+|-)? (DEC_DIGIT|_)* DEC_DIGIT (DEC_DIGIT|_)* <-- TODO SHOULD BE REFACTORED TO THIS PRODUCTION
 // (e|E) (+|-)? (DEC_DIGIT|_)+ <-- CURRENTLY USING THIS PRODUCTION (due to ambiguity in the above production from the parser)
 pub(crate) FloatExponent: String = {
@@ -261,7 +491,7 @@ pub(crate) FloatExponent: String = {
         // check if decimal_digits contains at least one digit
         if !decimal_digits.iter().any(|d| d.is_digit(10)) {
             return Err(ParseError::User {
-                error: ParserError::ParserInternalsInvalidFloatExponent
+                error: InternalParserError::InvalidFloatExponent
             })
         }
 
@@ -483,3 +713,18 @@ match {
     // `(`).
     _
 }
+
+// match {
+//     // These items have highest precedence.
+//     // r"[^\n\r\t']"
+// } else {
+//     // These items have next highest precedence.
+//     r"[0|1]""
+//     r"\s*" => {}, // ignore whitespace
+//     // r"//.*" => {}, // ignore comments
+//     r"//[^\n\r]*[\n\r]*" => {}, // ignore comments
+//     // This `_` means "add in all the other strings and
+//     // regular expressions in the grammer here" (e.g.,
+//     // `(`).
+//     _
+// } // you can have more `else` sections if you like

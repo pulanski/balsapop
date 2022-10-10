@@ -2,8 +2,10 @@ use miette::Diagnostic;
 use thiserror::Error;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub enum ParserError {
-    ParserInternalsInvalidFloatExponent,
+pub enum InternalParserError {
+    /// e.g. (e+_, E-_, etc.)
+    /// Float exponents must contain at least one digit
+    InvalidFloatExponent,
 }
 
 #[derive(Error, Debug, Diagnostic, PartialEq, Eq)]

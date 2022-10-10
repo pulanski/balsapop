@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 mod ast;
 mod cli;
 mod db;
@@ -7,7 +8,7 @@ use std::{fs::read_to_string, path::PathBuf};
 
 use clap::Parser;
 use cli::BalsapopCli;
-use miette::{IntoDiagnostic, Result};
+use miette::Result;
 
 use crate::cli::FileNotFound;
 
@@ -17,15 +18,15 @@ struct SourceFile {
     contents: ProgramSource,
 }
 
-impl SourceFile {
-    fn new(path: PathBuf) -> Result<Self> {
-        let text = read_to_string(&path).into_diagnostic()?;
-        Ok(Self {
-            path,
-            contents: ProgramSource { text },
-        })
-    }
-}
+// impl SourceFile {
+//     fn new(path: PathBuf) -> Result<Self> {
+//         let text = read_to_string(&path).into_diagnostic()?;
+//         Ok(Self {
+//             path,
+//             contents: ProgramSource { text },
+//         })
+//     }
+// }
 
 #[derive(Debug)]
 struct ProgramSource {
@@ -86,8 +87,7 @@ fn main() -> Result<()> {
             println!("Error parsing float exponent: {:?}", err);
             match err {
                 lalrpop_util::ParseError::User {
-                    error:
-                        parser_errors::ParserError::ParserInternalsInvalidFloatExponent,
+                    error: parser_errors::InternalParserError::InvalidFloatExponent,
                 } => return Err(parser_errors::InvalidFloatExponent {}.into()),
                 _ => {
                     println!("Other error");
@@ -173,31 +173,31 @@ mod cli_usage_test_suite {
 #[cfg(test)]
 mod parser_test_suite {
     use super::*;
-    use crate::parser_errors::ParserError::*;
+    use crate::parser_errors::InternalParserError::*;
     use lalrpop_util::ParseError;
     use pretty_assertions::assert_eq;
 
     #[test]
-    fn test_parse_string_literal_expression() {
-        let ast = parser::LiteralExpressionParser::new()
-            .parse(r#""Hello""#)
-            .unwrap();
-        assert_eq!(
-            ast,
-            ast::LiteralExpression::String {
-                s: "Hello".to_string(),
-            }
-        );
+    fn test_parse_string_literals() {
+        // let ast = parser::LiteralExpressionParser::new()
+        //     .parse(r#""Hello""#)
+        //     .unwrap();
+        // assert_eq!(ast, ast::LiteralExpression::String {
+        //     s: "Hello".to_string(),
+        // });
 
-        let ast = parser::LiteralExpressionParser::new()
-            .parse(r#""Hello, world!""#)
-            .unwrap();
-        assert_eq!(
-            ast,
-            ast::LiteralExpression::String {
-                s: "Hello, world!".to_string(),
-            }
-        );
+        // let ast = parser::LiteralExpressionParser::new()
+        //     .parse(r#""Hello, world!""#)
+        //     .unwrap();
+        // assert_eq!(ast, ast::LiteralExpression::String {
+        //     s: "Hello, world!".to_string(),
+        // });
+
+        // Character literals
+        // assert_eq!(parser::CharLiteralParser::new().parse('a'), Ok('a'));
+        // assert_eq!(parser::CharLiteralParser::new().parse('z'), Ok('z'));
+        // assert_eq!(parser::CharLiteralParser::new().parse('A'), Ok('A'));
+        // assert_eq!(parser::CharLiteralParser::new().parse('Z'), Ok('Z'));
     }
 
     #[test]
@@ -248,15 +248,25 @@ mod parser_test_suite {
             Ok(0xABCDEF)
         );
         assert_eq!(
-            parser::IntegerLiteralParser::new().parse("0X_A_B_C_D_E_F_i16"),
+            parser::IntegerLiteralParser::new().parse("0XA_B_C_D_E_F_i16"),
             Ok(0xABCDEF)
         );
+        // TODO Error("Expected a digit, but found '_'. Integer literals cannot start
+        // assert_eq!(
+        //     parser::IntegerLiteralParser::new().parse("0X_A_B_C_D_E_F_i16"),
+        //     Ok(0xABCDEF)
+        // );
         assert_eq!(parser::IntegerLiteralParser::new().parse("22i32"), Ok(22));
         assert_eq!(parser::IntegerLiteralParser::new().parse("0i64"), Ok(0));
         assert_eq!(
-            parser::IntegerLiteralParser::new().parse("_1_2_3_i128"),
+            parser::IntegerLiteralParser::new().parse("1_2_3_i128"),
             Ok(123)
         );
+        // TODO Error("Expected a digit, but found '_'. Integer literals cannot start
+        // with an underscore.") assert_eq!(
+        //     parser::IntegerLiteralParser::new().parse("_1_2_3_i128"),
+        //     Ok(123)
+        // );
         assert_eq!(
             parser::IntegerLiteralParser::new().parse("1_000isize"),
             Ok(1_000)
@@ -377,10 +387,7 @@ mod parser_test_suite {
         // - DecimalLiteral
         assert_eq!(parser::DecimalLiteralParser::new().parse("22"), Ok(22));
         assert_eq!(parser::DecimalLiteralParser::new().parse("0"), Ok(0));
-        assert_eq!(
-            parser::DecimalLiteralParser::new().parse("_1_2_3_"),
-            Ok(123)
-        );
+        assert_eq!(parser::DecimalLiteralParser::new().parse("1_2_3_"), Ok(123));
         assert_eq!(
             parser::DecimalLiteralParser::new().parse("1_000"),
             Ok(1_000)
@@ -407,6 +414,14 @@ mod parser_test_suite {
                 .parse("9_876_543_210_987_654_321_987_654_321"),
             Ok(9_876_543_210_987_654_321_987_654_321)
         );
+        // TODO assert that this is an error (decimal literal cannot start with an
+        // underscore)
+        // assert_eq!(
+        //     parser::DecimalLiteralParser::new().parse("_1_2_3_"),
+        //     Err(ParseError::User {
+        //         error: InvalidDecimalLiteral,
+        //     })
+        // );
 
         // - OctalLiteral
         assert_eq!(parser::OctalLiteralParser::new().parse("0o_____"), Ok(0o0));
@@ -688,32 +703,46 @@ mod parser_test_suite {
     }
 
     #[test]
-    fn test_parse_float_literal_expression() {
-        let ast = parser::LiteralExpressionParser::new()
-            .parse("22.0")
-            .unwrap();
-        assert_eq!(ast, ast::LiteralExpression::Float { f: 22.0 });
+    fn test_parse_float_literals() {
+        // let ast = parser::LiteralExpressionParser::new()
+        //     .parse("22.0")
+        //     .unwrap();
+        // assert_eq!(ast, ast::LiteralExpression::Float { f: 22.0 });
 
-        let ast = parser::LiteralExpressionParser::new().parse("0.0").unwrap();
-        assert_eq!(ast, ast::LiteralExpression::Float { f: 0.0 });
+        // let ast = parser::LiteralExpressionParser::new().parse("0.0").unwrap();
+        // assert_eq!(ast, ast::LiteralExpression::Float { f: 0.0 });
 
-        // - PlusOrMinusSign Non-Terminals
-        assert_eq!(parser::PlusOrMinusSignParser::new().parse("+"), Ok('+'));
-        assert_eq!(parser::PlusOrMinusSignParser::new().parse("-"), Ok('-'));
+        // DEC_LITERAL . DEC_LITERAL FLOAT_EXPONENT?
+        assert_eq!(parser::FloatLiteralParser::new().parse("22.0"), Ok(22.0));
+        assert_eq!(
+            parser::FloatLiteralParser::new().parse("22.0e+1"),
+            Ok(22.0e+1)
+        );
+        assert_eq!(
+            parser::FloatLiteralParser::new().parse("1234.5e-6"),
+            Ok(1234.5e-6)
+        );
+        assert_eq!(
+            parser::FloatLiteralParser::new().parse("12E+99_"),
+            Ok(12E+99)
+        );
+        assert_eq!(parser::FloatLiteralParser::new().parse("12."), Ok(12.0));
 
+        // Invalid Float Exponents
         assert_eq!(
             parser::FloatExponentParser::new().parse("e+_"),
             Err(ParseError::User {
-                error: ParserInternalsInvalidFloatExponent,
+                error: InvalidFloatExponent,
             })
         );
         assert_eq!(
             parser::FloatExponentParser::new().parse("E-_"),
             Err(ParseError::User {
-                error: ParserInternalsInvalidFloatExponent,
+                error: InvalidFloatExponent,
             })
         );
 
+        // Valid Float Exponents
         assert_eq!(
             parser::FloatExponentParser::new().parse("e+3"),
             Ok(String::from("e+3"))
@@ -740,16 +769,9 @@ mod parser_test_suite {
         );
         assert!(parser::FloatExponentParser::new().parse("e+").is_err());
 
-        // let ast = parser::LiteralExpressionParser::new()
-        //     .parse("-22.0")
-        //     .unwrap();
-        // assert_eq!(ast, ast::LiteralExpression::Float { f: -22.0 });
-
-        // e notation
-        // let ast = parser::LiteralExpressionParser::new()
-        //     .parse("22e+0")
-        //     .unwrap();
-        // assert_eq!(ast, ast::LiteralExpression::Float { f: 22.0 });
+        // "+" | "-"
+        assert_eq!(parser::PlusOrMinusSignParser::new().parse("+"), Ok('+'));
+        assert_eq!(parser::PlusOrMinusSignParser::new().parse("-"), Ok('-'));
     }
 
     // #[test]
@@ -1064,5 +1086,129 @@ mod lexer_test_suite {
         // Float Literal Exponent Symbol Terminals
         assert_eq!(parser::ExponentialSymbolParser::new().parse("e"), Ok('e'));
         assert_eq!(parser::ExponentialSymbolParser::new().parse("E"), Ok('E'));
+    }
+
+    #[test]
+    fn test_lex_character_and_string_literals() {
+        // Apostrophe
+        assert_eq!(parser::ApostropheParser::new().parse("'"), Ok('\''));
+
+        // Quote
+        assert_eq!(parser::QuoteParser::new().parse("\""), Ok('"'));
+    }
+
+    // ast::Keyword::AsKeyword
+
+    #[test]
+    fn test_lex_keywords() {
+        assert_eq!(parser::AsParser::new().parse("as"), Ok(ast::Keyword::As));
+        assert_eq!(
+            parser::BreakParser::new().parse("break"),
+            Ok(ast::Keyword::Break)
+        );
+        assert_eq!(
+            parser::ConstParser::new().parse("const"),
+            Ok(ast::Keyword::Const)
+        );
+        assert_eq!(
+            parser::ContinueParser::new().parse("continue"),
+            Ok(ast::Keyword::Continue)
+        );
+        assert_eq!(
+            parser::ElseParser::new().parse("else"),
+            Ok(ast::Keyword::Else)
+        );
+        assert_eq!(
+            parser::EnumParser::new().parse("enum"),
+            Ok(ast::Keyword::Enum)
+        );
+        // assert_eq!(
+        //     parser::ExternParser::new().parse("extern"),
+        //     Ok(ast::Keyword::Extern)
+        // );
+        // assert_eq!(
+        //     parser::FalseParser::new().parse("false"),
+        //     Ok(ast::Keyword::False)
+        // );
+        // assert_eq!(parser::FnParser::new().parse("fn"), Ok(ast::Keyword::Fn));
+        // assert_eq!(parser::ForParser::new().parse("for"), Ok(ast::Keyword::For));
+        // assert_eq!(parser::IfParser::new().parse("if"), Ok(ast::Keyword::If));
+        // assert_eq!(
+        //     parser::ImplParser::new().parse("impl"),
+        //     Ok(ast::Keyword::Impl)
+        // );
+        // assert_eq!(parser::InParser::new().parse("in"), Ok(ast::Keyword::In));
+        // assert_eq!(parser::LetParser::new().parse("let"), Ok(ast::Keyword::Let));
+        // assert_eq!(
+        //     parser::LoopParser::new().parse("loop"),
+        //     Ok(ast::Keyword::Loop)
+        // );
+        // assert_eq!(
+        //     parser::MatchParser::new().parse("match"),
+        //     Ok(ast::Keyword::Match)
+        // );
+        // assert_eq!(parser::ModParser::new().parse("mod"), Ok(ast::Keyword::Mod));
+        // assert_eq!(
+        //     parser::MoveParser::new().parse("move"),
+        //     Ok(ast::Keyword::Move)
+        // );
+        // assert_eq!(parser::MutParser::new().parse("mut"), Ok(ast::Keyword::Mut));
+        // assert_eq!(parser::PubParser::new().parse("pub"), Ok(ast::Keyword::Pub));
+        // assert_eq!(parser::RefParser::new().parse("ref"), Ok(ast::Keyword::Ref));
+        // assert_eq!(
+        //     parser::ReturnParser::new().parse("return"),
+        //     Ok(ast::Keyword::Return)
+        // );
+        // assert_eq!(
+        //     parser::SelfParser::new().parse("self"),
+        //     Ok(ast::Keyword::Self_)
+        // );
+        // assert_eq!(
+        //     parser::SelfParser::new().parse("Self"),
+        //     Ok(ast::Keyword::Self_)
+        // );
+        // assert_eq!(
+        //     parser::StaticParser::new().parse("static"),
+        //     Ok(ast::Keyword::Static)
+        // );
+        // assert_eq!(
+        //     parser::StructParser::new().parse("struct"),
+        //     Ok(ast::Keyword::Struct)
+        // );
+        // assert_eq!(
+        //     parser::SuperParser::new().parse("super"),
+        //     Ok(ast::Keyword::Super)
+        // );
+        // assert_eq!(
+        //     parser::TraitParser::new().parse("trait"),
+        //     Ok(ast::Keyword::Trait)
+        // );
+        // assert_eq!(
+        //     parser::TrueParser::new().parse("true"),
+        //     Ok(ast::Keyword::True)
+        // );
+        // assert_eq!(
+        //     parser::TypeParser::new().parse("type"),
+        //     Ok(ast::Keyword::Type)
+        // );
+        // assert_eq!(
+        //     parser::UnsafeParser::new().parse("unsafe"),
+        //     Ok(ast::Keyword::Unsafe)
+        // );
+        // assert_eq!(parser::UseParser::new().parse("use"), Ok(ast::Keyword::Use));
+        // assert_eq!(
+        //     parser::WhereParser::new().parse("where"),
+        //     Ok(ast::Keyword::Where)
+        // );
+        // assert_eq!(
+        //     parser::WhileParser::new().parse("while"),
+        //     Ok(ast::Keyword::While)
+        // );
+        // TODO in the future maybe refactor to a nested enum within keywords
+        // (e.g. ast::Keyword::Reserved::Abstract,
+        // ast::Keyword::Reserved::Final, ast::Keyword::Reserved::async,
+        // etc.) for reserved keywords (i.e. keywords which may not yet
+        // be implemented into the language but cannot be used as
+        // identifiers)
     }
 }
