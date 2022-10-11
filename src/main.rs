@@ -4,7 +4,10 @@ mod cli;
 mod db;
 mod parser_errors;
 
-use std::{fs::read_to_string, path::PathBuf};
+use std::{
+    fs::read_to_string,
+    path::PathBuf,
+};
 
 use clap::Parser;
 use cli::BalsapopCli;
@@ -14,7 +17,7 @@ use crate::cli::FileNotFound;
 
 #[derive(Debug)]
 struct SourceFile {
-    path: PathBuf,
+    path:     PathBuf,
     contents: ProgramSource,
 }
 
@@ -131,7 +134,7 @@ pub(crate) fn get_source_file(
             // )))
 
             Box::new(SourceFile {
-                path: source_path,
+                path:     source_path,
                 contents: ProgramSource { text: source_str },
             })
         }
@@ -1097,8 +1100,6 @@ mod lexer_test_suite {
         assert_eq!(parser::QuoteParser::new().parse("\""), Ok('"'));
     }
 
-    // ast::Keyword::AsKeyword
-
     #[test]
     fn test_lex_keywords() {
         assert_eq!(parser::AsParser::new().parse("as"), Ok(ast::Keyword::As));
@@ -1115,6 +1116,10 @@ mod lexer_test_suite {
             Ok(ast::Keyword::Continue)
         );
         assert_eq!(
+            parser::CrateParser::new().parse("crate"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Crate))
+        );
+        assert_eq!(
             parser::ElseParser::new().parse("else"),
             Ok(ast::Keyword::Else)
         );
@@ -1122,93 +1127,172 @@ mod lexer_test_suite {
             parser::EnumParser::new().parse("enum"),
             Ok(ast::Keyword::Enum)
         );
-        // assert_eq!(
-        //     parser::ExternParser::new().parse("extern"),
-        //     Ok(ast::Keyword::Extern)
-        // );
-        // assert_eq!(
-        //     parser::FalseParser::new().parse("false"),
-        //     Ok(ast::Keyword::False)
-        // );
-        // assert_eq!(parser::FnParser::new().parse("fn"), Ok(ast::Keyword::Fn));
-        // assert_eq!(parser::ForParser::new().parse("for"), Ok(ast::Keyword::For));
-        // assert_eq!(parser::IfParser::new().parse("if"), Ok(ast::Keyword::If));
-        // assert_eq!(
-        //     parser::ImplParser::new().parse("impl"),
-        //     Ok(ast::Keyword::Impl)
-        // );
-        // assert_eq!(parser::InParser::new().parse("in"), Ok(ast::Keyword::In));
-        // assert_eq!(parser::LetParser::new().parse("let"), Ok(ast::Keyword::Let));
-        // assert_eq!(
-        //     parser::LoopParser::new().parse("loop"),
-        //     Ok(ast::Keyword::Loop)
-        // );
-        // assert_eq!(
-        //     parser::MatchParser::new().parse("match"),
-        //     Ok(ast::Keyword::Match)
-        // );
-        // assert_eq!(parser::ModParser::new().parse("mod"), Ok(ast::Keyword::Mod));
-        // assert_eq!(
-        //     parser::MoveParser::new().parse("move"),
-        //     Ok(ast::Keyword::Move)
-        // );
-        // assert_eq!(parser::MutParser::new().parse("mut"), Ok(ast::Keyword::Mut));
-        // assert_eq!(parser::PubParser::new().parse("pub"), Ok(ast::Keyword::Pub));
-        // assert_eq!(parser::RefParser::new().parse("ref"), Ok(ast::Keyword::Ref));
-        // assert_eq!(
-        //     parser::ReturnParser::new().parse("return"),
-        //     Ok(ast::Keyword::Return)
-        // );
-        // assert_eq!(
-        //     parser::SelfParser::new().parse("self"),
-        //     Ok(ast::Keyword::Self_)
-        // );
-        // assert_eq!(
-        //     parser::SelfParser::new().parse("Self"),
-        //     Ok(ast::Keyword::Self_)
-        // );
-        // assert_eq!(
-        //     parser::StaticParser::new().parse("static"),
-        //     Ok(ast::Keyword::Static)
-        // );
-        // assert_eq!(
-        //     parser::StructParser::new().parse("struct"),
-        //     Ok(ast::Keyword::Struct)
-        // );
-        // assert_eq!(
-        //     parser::SuperParser::new().parse("super"),
-        //     Ok(ast::Keyword::Super)
-        // );
-        // assert_eq!(
-        //     parser::TraitParser::new().parse("trait"),
-        //     Ok(ast::Keyword::Trait)
-        // );
-        // assert_eq!(
-        //     parser::TrueParser::new().parse("true"),
-        //     Ok(ast::Keyword::True)
-        // );
-        // assert_eq!(
-        //     parser::TypeParser::new().parse("type"),
-        //     Ok(ast::Keyword::Type)
-        // );
-        // assert_eq!(
-        //     parser::UnsafeParser::new().parse("unsafe"),
-        //     Ok(ast::Keyword::Unsafe)
-        // );
-        // assert_eq!(parser::UseParser::new().parse("use"), Ok(ast::Keyword::Use));
-        // assert_eq!(
-        //     parser::WhereParser::new().parse("where"),
-        //     Ok(ast::Keyword::Where)
-        // );
-        // assert_eq!(
-        //     parser::WhileParser::new().parse("while"),
-        //     Ok(ast::Keyword::While)
-        // );
-        // TODO in the future maybe refactor to a nested enum within keywords
-        // (e.g. ast::Keyword::Reserved::Abstract,
-        // ast::Keyword::Reserved::Final, ast::Keyword::Reserved::async,
-        // etc.) for reserved keywords (i.e. keywords which may not yet
-        // be implemented into the language but cannot be used as
-        // identifiers)
+        assert_eq!(
+            parser::ExternParser::new().parse("extern"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Extern))
+        );
+        assert_eq!(
+            parser::FalseParser::new().parse("false"),
+            Ok(ast::Keyword::False)
+        );
+        assert_eq!(parser::FnParser::new().parse("fn"), Ok(ast::Keyword::Fn));
+        assert_eq!(parser::ForParser::new().parse("for"), Ok(ast::Keyword::For));
+        assert_eq!(parser::IfParser::new().parse("if"), Ok(ast::Keyword::If));
+        assert_eq!(
+            parser::ImplParser::new().parse("impl"),
+            Ok(ast::Keyword::Impl)
+        );
+        assert_eq!(parser::InParser::new().parse("in"), Ok(ast::Keyword::In));
+        assert_eq!(
+            parser::LoopParser::new().parse("loop"),
+            Ok(ast::Keyword::Loop)
+        );
+        assert_eq!(
+            parser::MatchParser::new().parse("match"),
+            Ok(ast::Keyword::Match)
+        );
+        assert_eq!(parser::ModParser::new().parse("mod"), Ok(ast::Keyword::Mod));
+        assert_eq!(parser::PubParser::new().parse("pub"), Ok(ast::Keyword::Pub));
+        assert_eq!(
+            parser::ReturnParser::new().parse("return"),
+            Ok(ast::Keyword::Return)
+        );
+        assert_eq!(
+            parser::SelfValueParser::new().parse("self"),
+            Ok(ast::Keyword::SelfValue)
+        );
+        assert_eq!(
+            parser::SelfTypeParser::new().parse("Self"),
+            Ok(ast::Keyword::SelfType)
+        );
+        assert_eq!(
+            parser::StaticParser::new().parse("static"),
+            Ok(ast::Keyword::Static)
+        );
+        assert_eq!(
+            parser::StructParser::new().parse("struct"),
+            Ok(ast::Keyword::Struct)
+        );
+        assert_eq!(
+            parser::SuperParser::new().parse("super"),
+            Ok(ast::Keyword::Super)
+        );
+        assert_eq!(
+            parser::TraitParser::new().parse("trait"),
+            Ok(ast::Keyword::Trait)
+        );
+        assert_eq!(
+            parser::TrueParser::new().parse("true"),
+            Ok(ast::Keyword::True)
+        );
+        assert_eq!(
+            parser::TypeParser::new().parse("type"),
+            Ok(ast::Keyword::Type)
+        );
+        assert_eq!(parser::UseParser::new().parse("use"), Ok(ast::Keyword::Use));
+        assert_eq!(
+            parser::WhereParser::new().parse("where"),
+            Ok(ast::Keyword::Where)
+        );
+        assert_eq!(
+            parser::WhileParser::new().parse("while"),
+            Ok(ast::Keyword::While)
+        );
+    }
+
+    #[test]
+    fn text_lex_reserved_keywords() {
+        assert_eq!(
+            parser::AbstractParser::new().parse("abstract"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Abstract))
+        );
+        assert_eq!(
+            parser::AsyncParser::new().parse("async"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Async))
+        );
+        assert_eq!(
+            parser::AwaitParser::new().parse("await"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Await))
+        );
+        assert_eq!(
+            parser::CrateParser::new().parse("crate"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Crate))
+        );
+        assert_eq!(
+            parser::DoParser::new().parse("do"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Do))
+        );
+        assert_eq!(
+            parser::DynParser::new().parse("dyn"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Dyn))
+        );
+        assert_eq!(
+            parser::ExportParser::new().parse("export"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Export))
+        );
+        assert_eq!(
+            parser::ExternParser::new().parse("extern"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Extern))
+        );
+        assert_eq!(
+            parser::FinalParser::new().parse("final"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Final))
+        );
+        assert_eq!(
+            parser::ImportParser::new().parse("import"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Import))
+        );
+        assert_eq!(
+            parser::LetParser::new().parse("let"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Let))
+        );
+        assert_eq!(
+            parser::MacroParser::new().parse("macro"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Macro))
+        );
+        assert_eq!(
+            parser::MoveParser::new().parse("move"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Move))
+        );
+        assert_eq!(
+            parser::MutParser::new().parse("mut"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Mut))
+        );
+        assert_eq!(
+            parser::OverrideParser::new().parse("override"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Override))
+        );
+        assert_eq!(
+            parser::PrivParser::new().parse("priv"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Priv))
+        );
+        assert_eq!(
+            parser::ProcParser::new().parse("proc"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Proc))
+        );
+        assert_eq!(
+            parser::RefParser::new().parse("ref"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Ref))
+        );
+        assert_eq!(
+            parser::TypeofParser::new().parse("typeof"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Typeof))
+        );
+        assert_eq!(
+            parser::UnsafeParser::new().parse("unsafe"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Unsafe))
+        );
+        assert_eq!(
+            parser::UnsizedParser::new().parse("unsized"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Unsized))
+        );
+        assert_eq!(
+            parser::VirtualParser::new().parse("virtual"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Virtual))
+        );
+        assert_eq!(
+            parser::YieldParser::new().parse("yield"),
+            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Yield))
+        );
     }
 }

@@ -1,5 +1,6 @@
 use crate::ast::*;
 use crate::parser_errors::*;
+// use colored::Colorize;
 
 use lalrpop_util::ParseError;
 
@@ -22,8 +23,23 @@ pub LiteralExpression: LiteralExpression = {
 //////////////////////////////////////////////////////////////////////////////
 
 // "as"
+pub(crate) Abstract: Keyword = {
+    "abstract" => Keyword::Reserved(ReservedKeyword::Abstract),
+}
+
+// "as"
 pub(crate) As: Keyword = {
     "as" => Keyword::As,
+}
+
+// "async"
+pub(crate) Async: Keyword = {
+    "async" => Keyword::Reserved(ReservedKeyword::Async),
+}
+
+// "await"
+pub(crate) Await: Keyword = {
+    "await" => Keyword::Reserved(ReservedKeyword::Await),
 }
 
 // "break"
@@ -41,6 +57,21 @@ pub(crate) Continue: Keyword = {
     "continue" => Keyword::Continue,
 }
 
+// "crate"
+pub(crate) Crate: Keyword = {
+    "crate" => Keyword::Reserved(ReservedKeyword::Crate),
+}
+
+// "do"
+pub(crate) Do: Keyword = {
+    "do" => Keyword::Reserved(ReservedKeyword::Do),
+}
+
+// "dyn"
+pub(crate) Dyn: Keyword = {
+    "dyn" => Keyword::Reserved(ReservedKeyword::Dyn),
+}
+
 // "else"
 pub(crate) Else: Keyword = {
     "else" => Keyword::Else,
@@ -51,9 +82,24 @@ pub(crate) Enum: Keyword = {
     "enum" => Keyword::Enum,
 }
 
+// "export"
+pub(crate) Export: Keyword = {
+    "export" => Keyword::Reserved(ReservedKeyword::Export),
+}
+
+// "extern"
+pub(crate) Extern: Keyword = {
+    "extern" => Keyword::Reserved(ReservedKeyword::Extern),
+}
+
 // "false"
 pub(crate) False: Keyword = {
     "false" => Keyword::False,
+}
+
+// "final"
+pub(crate) Final: Keyword = {
+    "final" => Keyword::Reserved(ReservedKeyword::Final),
 }
 
 // "fn"
@@ -76,14 +122,29 @@ pub(crate) Impl: Keyword = {
     "impl" => Keyword::Impl,
 }
 
+// "import"
+pub(crate) Import: Keyword = {
+    "import" => Keyword::Reserved(ReservedKeyword::Import),
+}
+
 // "in"
 pub(crate) In: Keyword = {
     "in" => Keyword::In,
 }
 
+// "let"
+pub(crate) Let: Keyword = {
+    "let" => Keyword::Reserved(ReservedKeyword::Let),
+}
+
 // "loop"
 pub(crate) Loop: Keyword = {
     "loop" => Keyword::Loop,
+}
+
+// "macro"
+pub(crate) Macro: Keyword = {
+    "macro" => Keyword::Reserved(ReservedKeyword::Macro),
 }
 
 // "match"
@@ -97,14 +158,29 @@ pub(crate) Mod: Keyword = {
 }
 
 // "move"
-// pub(crate) Move: Keyword = {
-//     "move" => Keyword::Move,
-// }
+pub(crate) Move: Keyword = {
+    "move" => Keyword::Reserved(ReservedKeyword::Move),
+}
 
 // "mut"
-// pub(crate) Mut: Keyword = {
-//     "mut" => Keyword::Mut,
-// }
+pub(crate) Mut: Keyword = {
+    "mut" => Keyword::Reserved(ReservedKeyword::Mut),
+}
+
+// "Override"
+pub(crate) Override: Keyword = {
+    "override" => Keyword::Reserved(ReservedKeyword::Override),
+}
+
+// "priv"
+pub(crate) Priv: Keyword = {
+    "priv" => Keyword::Reserved(ReservedKeyword::Priv),
+}
+
+// "proc"
+pub(crate) Proc: Keyword = {
+    "proc" => Keyword::Reserved(ReservedKeyword::Proc),
+}
 
 // "pub"
 pub(crate) Pub: Keyword = {
@@ -112,9 +188,9 @@ pub(crate) Pub: Keyword = {
 }
 
 // "ref"
-// pub(crate) Ref: Keyword = {
-//     "ref" => Keyword::Ref,
-// }
+pub(crate) Ref: Keyword = {
+    "ref" => Keyword::Reserved(ReservedKeyword::Ref),
+}
 
 // "return"
 pub(crate) Return: Keyword = {
@@ -122,13 +198,13 @@ pub(crate) Return: Keyword = {
 }
 
 // "self"
-pub(crate) SelfLowercase: Keyword = {
-    "self" => Keyword::SelfLowercase,
+pub(crate) SelfValue: Keyword = {
+    "self" => Keyword::SelfValue,
 }
 
 // "Self"
-pub(crate) SelfUppercase: Keyword = {
-    "Self" => Keyword::SelfUppercase,
+pub(crate) SelfType: Keyword = {
+    "Self" => Keyword::SelfType,
 }
 
 // "static"
@@ -161,20 +237,56 @@ pub(crate) Type: Keyword = {
     "type" => Keyword::Type,
 }
 
+// "typeof"
+pub(crate) Typeof: Keyword = {
+    "typeof" => Keyword::Reserved(ReservedKeyword::Typeof),
+}
+
+// "unsafe"
+pub(crate) Unsafe: Keyword = {
+    "unsafe" => Keyword::Reserved(ReservedKeyword::Unsafe),
+}
+
+// "unsized"
+pub(crate) Unsized: Keyword = {
+    "unsized" => Keyword::Reserved(ReservedKeyword::Unsized),
+}
+
 // "use"
 pub(crate) Use: Keyword = {
     "use" => Keyword::Use,
 }
 
+// "virtual"
+pub(crate) Virtual: Keyword = {
+    "virtual" => Keyword::Reserved(ReservedKeyword::Virtual),
+}
+
 // "where"
-// pub(crate) Where: Keyword = {
-//     "where" => Keyword::Where,
-// }
+pub(crate) Where: Keyword = {
+    "where" => Keyword::Where,
+}
 
 // "while"
 pub(crate) While: Keyword = {
     "while" => Keyword::While,
 }
+
+// "yield"
+pub(crate) Yield: Keyword = {
+    "yield" => Keyword::Reserved(ReservedKeyword::Yield),
+}
+
+// IDENTIFIER_OR_KEYWORD :
+//       XID_Start XID_Continue*
+//    | _ XID_Continue+
+// pub(crate) Identifier: String = {
+//     <identifier:IdentifierStart> <identifier:IdentifierContinue>* => identifier,
+// }
+
+// pub(crate) IdentifierStart: String = {
+//     <identifier_start:r"\p{Nd}+([[:WB=MB:][:WB=MN:]]\p{Nd}+)?"> => identifier_start.to_string(),
+// }
 
 ///////////////////////////////////
 // Character and String Literals //
@@ -218,6 +330,8 @@ pub(crate) Quote: char = {
 StringLiteral: String = {
     <s:r#""[^"]*""#> => s.to_string()[1..s.len() - 1].to_string(),
 }
+
+
 
 ///////////////////////////////
 // Numeric Literals          //
@@ -264,6 +378,7 @@ pub(crate) IntegerLiteral: u128 = {
     <octal_literal:OctalLiteral> IntegerSuffix? => octal_literal,
     <binary_literal:BinaryLiteral> IntegerSuffix? => binary_literal,
 }
+
 
 pub(crate) HexadecimalLiteral: u128 = {
     <hexadecimal_prefix:HexadecimalLiteralPrefix> <hexadecimal_digits:HexadecimalDigitOrUnderscore+> => {
@@ -509,7 +624,7 @@ pub(crate) FloatExponent: String = {
 
 // "e" | "E"
 pub(crate) ExponentialSymbol: char = {
-    <e:r"[eE]"> => e.chars().next().unwrap(),
+    <e:r"e|E"> => e.chars().next().unwrap(),
 }
 
 // "+" | "-"
@@ -716,10 +831,11 @@ match {
 
 // match {
 //     // These items have highest precedence.
-//     // r"[^\n\r\t']"
+//     r"\p{Nd}+([[:WB=MB:][:WB=MN:]]\p{Nd}+)?"
+//     // These items have next highest precedence.
 // } else {
 //     // These items have next highest precedence.
-//     r"[0|1]""
+//     r"0|1",
 //     r"\s*" => {}, // ignore whitespace
 //     // r"//.*" => {}, // ignore comments
 //     r"//[^\n\r]*[\n\r]*" => {}, // ignore comments
