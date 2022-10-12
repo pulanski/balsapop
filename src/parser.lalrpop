@@ -1,4 +1,6 @@
 use crate::ast::*;
+use crate::ReservedKeyword::Crate;
+
 use crate::parser_errors::*;
 // use colored::Colorize;
 
@@ -10,13 +12,13 @@ extern {
     type Error = InternalParserError;
 }
 
-pub LiteralExpression: LiteralExpression = {
-    // <n: IntegerLiteral> => LiteralExpression::Integer{n},
-    // <f: FloatLiteral> => LiteralExpression::Float{f},
-    <s: StringLiteral> => LiteralExpression::String{s},
-    // <b: BoolLiteral> => LiteralExpression::Bool{b},
-    // <c: CharLiteral> => LiteralExpression::Char{c},
-}
+// pub LiteralExpression: LiteralExpression = {
+//     // <n: IntegerLiteral> => LiteralExpression::Integer{n},
+//     // <f: FloatLiteral> => LiteralExpression::Float{f},
+//     <s: StringLiteral> => LiteralExpression::String{s},
+//     // <b: BoolLiteral> => LiteralExpression::Bool{b},
+//     // <c: CharLiteral> => LiteralExpression::Char{c},
+// }
 
 //////////////////////////////////////////////////////////////////////////////
 // Keywords (e.g. `as`, `if`, `else`, etc.) are not allowed as identifiers. //
@@ -293,12 +295,37 @@ pub(crate) Yield: Keyword = {
 ///////////////////////////////////
 
 // pub(crate) CharLiteral: char = {
-//     <left_apostrophe:Apostrophe> <character:r"[^\n\r\t']"> <right_apostrophe:Apostrophe> => character.next().unwrap(),
+//     <left_apostrophe:Apostrophe> <character:r"[^\n\r\t'\\]"> <right_apostrophe:Apostrophe> => character.chars().next().unwrap(),
 // }
 
 ////////////////////////////////////////////////
 // Character and String Literal symbol tokens //
 ////////////////////////////////////////////////
+
+// UNICODE_ESCAPE :
+//    \u{ ( HEX_DIGIT _* )1..6 }
+
+// pub(crate) UnicodeEscape: String = {
+//     <left_backslash:Backslash> <u:U> <left_brace:LeftBrace> <digits:HexDigit> <digits:HexDigit>* <right_brace:RightBrace> => {
+//         let mut s = String::new();
+//         s.push(left_backslash);
+//         s.push(u);
+//         s.push(left_brace);
+//         s.push_str(&digits);
+//         s.push(right_brace);
+//         s
+//     },
+// }
+
+// "\u"
+pub(crate) UnicodeEscapePrefix: String = {
+    <left_backslash:Backslash> <u:"u"> => {
+        let mut s = String::new();
+        s.push_str("\\");
+        s.push_str(&u);
+        s
+    },
+}
 
 pub(crate) Apostrophe: char = {
     <apostrophe:"'"> => apostrophe.chars().next().unwrap(),
@@ -330,8 +357,6 @@ pub(crate) Quote: char = {
 StringLiteral: String = {
     <s:r#""[^"]*""#> => s.to_string()[1..s.len() - 1].to_string(),
 }
-
-
 
 ///////////////////////////////
 // Numeric Literals          //
@@ -497,25 +522,25 @@ pub(crate) BinaryLiteral: u128 = {
 // HexadecimalDigit | Underscore
 pub(crate) HexadecimalDigitOrUnderscore: char = {
     <hexadecimal_digit:HexadecimalDigit> => hexadecimal_digit,
-    <underscore:Underscore> => underscore,
+    <underscore:Underscore> => '_',
 }
 
 // DecimalDigit | Underscore
 pub(crate) DecimalDigitOrUnderscore: char = {
     <decimal_digit:DecimalDigit> => decimal_digit,
-    <underscore:Underscore> => underscore,
+    <underscore:Underscore> => '_',
 }
 
 // OctalDigit | Underscore
 pub(crate) OctalDigitOrUnderscore: char = {
     <octal_digit:OctalDigit> => octal_digit,
-    <underscore:Underscore> => underscore,
+    <underscore:Underscore> => '_',
 }
 
 // BinaryDigit | Underscore
 pub(crate) BinaryDigitOrUnderscore: char = {
     <binary_digit:BinaryDigit> => binary_digit,
-    <underscore:Underscore> => underscore,
+    <underscore:Underscore> => '_',
 }
 
 // "0".."9" | "a".."f" | "A".."F"
@@ -578,7 +603,7 @@ pub(crate) IntegerSuffix: String = {
 pub(crate) FloatLiteral: f64 = {
     <start_decimal_literal:DecimalLiteral> <dot:Dot> <end_decimal_literal:DecimalLiteral> <exponent:FloatExponent?> => {
         let mut result = start_decimal_literal.to_string();
-        result.push(dot);
+        result.push('.');
         result.push_str(&end_decimal_literal.to_string());
         if let Some(exponent) = exponent {
             result.push_str(&exponent.to_string());
@@ -592,7 +617,7 @@ pub(crate) FloatLiteral: f64 = {
     },
     <decimal_literal:DecimalLiteral> <dot:Dot> => {
         let mut result = decimal_literal.to_string();
-        result.push(dot);
+        result.push('.');
         result.parse::<f64>().unwrap()
     },
 }
@@ -629,8 +654,8 @@ pub(crate) ExponentialSymbol: char = {
 
 // "+" | "-"
 pub(crate) PlusOrMinusSign: char = {
-    <sign:Plus> => sign,
-    <sign:Minus> => sign,
+    <sign:Plus> => '+',
+    <sign:Minus> => '-',
 }
 
 // "f32" | "f64"
@@ -638,191 +663,371 @@ pub(crate) FloatSuffix: String = {
     <float_suffix:r"f32|f64"> => float_suffix.to_string(),
 }
 
-////////////////////////////////////////////
-// Punctuation symbol tokens              //
-//                                        //
-// "+" -> Plus: char                      //
-// "-" -> Minus: char                     //
-// "*" -> Star: char                      //
-// "/" -> Slash: char                     //
-// "%" -> Percent: char                   //
-// "^" -> Caret: char                     //
-// "! -> Not: char                        //
-// "&" -> And: char                       //
-// "|" -> Or: char                        //
-// "&&" -> AndAnd: String                 //
-// "||" -> OrOr: String                   //
-// "+=" -> PlusEquals: String             //
-// "-=" -> MinusEquals: String            //
-// "*=" -> StarEquals: String             //
-// "/=" -> SlashEquals: String            //
-// "%=" -> PercentEquals: String          //
-// "^=" -> CaretEquals: String            //
-// "&=" -> AndEquals: String              //
-// "|=" -> OrEquals: String               //
-// "==" -> DoubleEquals: String           //
-// "!=" -> NotEqual: String               //
-// "<" -> LessThan: char                  //
-// ">" -> GreaterThan: char               //
-// "<=" | "≤" -> LessThanEqual: String    //
-// ">=" | "≥" -> GreaterThanEqual: String //
-////////////////////////////////////////////
+////////////////////////////
+// Mathematical Constants //
+////////////////////////////
 
-pub(crate) Plus: char = {
-    <plus:"+"> => plus.chars().next().unwrap(),
-}
-pub(crate) Minus: char = {
-    <minus:"-"> => minus.chars().next().unwrap(),
-}
-pub(crate) Star: char = {
-    <star:"*"> => star.chars().next().unwrap(),
-}
-pub(crate) Slash: char = {
-    <slash:"/"> => slash.chars().next().unwrap(),
-}
-pub(crate) Percent: char = {
-    <percent:"%"> => percent.chars().next().unwrap(),
-}
-pub(crate) Caret: char = {
-    <caret:"^"> => caret.chars().next().unwrap(),
-}
-pub(crate) Not: char = {
-    <not:"!"> => not.chars().next().unwrap(),
-}
-pub(crate) And: char = {
-    <and:"&"> => and.chars().next().unwrap(),
-}
-pub(crate) Or: char = {
-    <or:"|"> => or.chars().next().unwrap(),
-}
-pub(crate) AndAnd: String = {
-    <and_and:"&&"> => and_and.to_string(),
-}
-pub(crate) OrOr: String = {
-    <or_or:"||"> => or_or.to_string(),
-}
-pub(crate) MinusEquals: String = {
-    <minus_equals:"-="> => minus_equals.to_string(),
-}
-pub(crate) StarEquals: String = {
-    <star_equals:"*="> => star_equals.to_string(),
-}
-pub(crate) SlashEquals: String = {
-    <slash_equals:"/="> => slash_equals.to_string(),
-}
-pub(crate) PercentEquals: String = {
-    <percent_equals:"%="> => percent_equals.to_string(),
-}
-pub(crate) CaretEquals: String = {
-    <caret_equals:"^="> => caret_equals.to_string(),
-}
-pub(crate) AndEquals: String = {
-    <and_equals:"&="> => and_equals.to_string(),
-}
-pub(crate) OrEquals: String = {
-    <or_equals:"|="> => or_equals.to_string(),
-}
-pub(crate) Equals: char = {
-    <equals:"="> => equals.chars().next().unwrap(),
-}
-pub(crate) DoubleEquals: String = {
-    <double_equals:"=="> => double_equals.to_string(),
-}
-pub(crate) NotEqual: String = {
-    <not_equal:"!="> => not_equal.to_string(),
-}
-pub(crate) LessThan: char = {
-    <less_than:"<"> => less_than.chars().next().unwrap(),
-}
-pub(crate) LessThanEqual: String = {
-    <less_than_equal:"<="> => less_than_equal.to_string(),
-    <less_than_equal:"≤"> => less_than_equal.to_string(),
-}
-pub(crate) GreaterThan: char = {
-    <greater_than:">"> => greater_than.chars().next().unwrap(),
-}
-pub(crate) GreaterThanEqual: String = {
-    <greater_than_equal:">="> => greater_than_equal.to_string(),
-    <greater_than_equal:"≥"> => greater_than_equal.to_string(),
+// "pi" | "π" | "tau" | "τ" | "e"
+
+// PiLiteral := PiSymbol PiSuffix?
+// PiSymbol := "pi" | "π"
+// PiSuffix := "_" <decimal_digits:DecimalDigit+> where decimal_digits is < 15
+// TauLiteral := TauSymbol TauSuffix?
+
+// TODO MathematicalConstant: MathematicalConstant = {
+
+// "pi" | "π" | "𝜋"
+pub(crate) Pi: MathematicalConstant  = {
+    <pi:r"pi|π|𝜋"> => MathematicalConstant::Pi {
+        value: std::f64::consts::PI,
+    },
 }
 
-pub(crate) Underscore: char = {
-    <underscore:"_"> => underscore.chars().next().unwrap(),
+// "euler" | "ℯ"
+pub(crate) Euler: MathematicalConstant = {
+    <euler:r"euler|ℯ"> => MathematicalConstant::Euler {
+        value: std::f64::consts::E,
+    },
 }
-pub(crate) Dot: char = {
-    <dot:"."> => dot.chars().next().unwrap(),
+
+// "tau" | "τ" | "𝜏"
+pub(crate) Tau: MathematicalConstant = {
+    <tau:r"tau|τ|𝜏"> => MathematicalConstant::Tau {
+        value: std::f64::consts::TAU,
+    },
 }
-pub(crate) DotDot: String = {
-    <dot_dot:".."> => dot_dot.to_string(),
+
+// "phi" | "φ" | "𝜙"
+pub(crate) GoldenRatio: MathematicalConstant = {
+    <golden:r"golden|φ|𝜙"> => MathematicalConstant::GoldenRatio {
+        value: 1.618033988749895,
+    },
 }
-pub(crate) DotDotDot: String = {
-    <dot_dot_dot:"..."> => dot_dot_dot.to_string(),
+
+// "catalan" | "𝜆"
+pub(crate) Catalan: MathematicalConstant = {
+    <catalan:"catalan"> => MathematicalConstant::Catalan {
+        value: 0.915965594177219,
+    },
 }
-pub(crate) DotDotEquals: String = {
-    <dot_dot_equals:"..="> => dot_dot_equals.to_string(),
+
+// "eulergamma" | "γ" | "𝛾" | "eulermascheroni"
+pub(crate) EulerMascheroni: MathematicalConstant = {
+    <eulermascheroni:r"eulermascheroni|γ|𝛾|eulergamma"> => MathematicalConstant::EulerMascheroni {
+        value: 0.5772156649015329,
+    },
 }
-pub(crate) Comma: char = {
-    <comma:","> => comma.chars().next().unwrap(),
+
+// "Inf" | "∞"
+pub(crate) Infinity: MathematicalConstant = {
+    <infinity:r"Inf|∞"> => MathematicalConstant::Infinity {
+        value: std::f64::INFINITY,
+    },
 }
-pub(crate) Colon: char = {
-    <colon:":"> => colon.chars().next().unwrap(),
+
+// "NaN"
+pub(crate) NotANumber: MathematicalConstant = {
+    <nan:"NaN"> => MathematicalConstant::NotANumber
 }
-pub(crate) Semicolon: char = {
-    <semicolon:";"> => semicolon.chars().next().unwrap(),
+
+//////////////
+// Comments //
+//////////////
+
+// LINE_COMMENT :
+//    //   (~[/ !] | //) ~\n*
+//    | //
+pub(crate) LineComment: Comment = {
+    <comment:r"//([^/!]|//)[^\n]*"> => Comment::LineComment {
+        comment: String::from(comment),
+    },
+    <comment:"//"> => Comment::LineComment {
+        comment: String::from(comment),
+    },
 }
-pub(crate) PathSeparator: String = {
-    <path_separator:"::"> => path_separator.to_string(),
+
+// BLOCK_COMMENT :
+//    /* (~[*!] | **) (~*/) ~[*]*/
+//    | /**/
+//    | /***/
+pub(crate) BlockComment: Comment = {
+    <comment:r"/\*([^*!]|\*\*)[^*]*\*/"> => Comment::BlockComment {
+        comment: String::from(comment),
+    },
+    <comment:"/**/"> => Comment::BlockComment {
+        comment: String::from(comment),
+    },
+    <comment:"/***/"> => Comment::BlockComment {
+        comment: String::from(comment),
+    },
 }
-pub(crate) RightArrow: String = {
-    <right_arrow:"->"> => right_arrow.to_string(),
+
+// OUTER_LINE_DOC :
+   /// (~/ ~[\n]*)?
+pub(crate) OuterLineDocComment: Comment = {
+    <comment:r"///([^/][^\n]*)?"> => Comment::DocComment(DocComment::OuterLineDocComment {
+        comment: String::from(comment),
+    }),
 }
-pub(crate) FatArrow: String = {
-    <fat_arrow:"=>"> => fat_arrow.to_string(),
+
+// INNER_LINE_DOC :
+//    //! ~[\n]*
+pub(crate) InnerLineDocComment: Comment = {
+    <comment:r"//![^\n]*"> => Comment::DocComment(DocComment::InnerLineDocComment {
+        comment: String::from(comment),
+    }),
 }
-pub(crate) Pound: char = {
-    <pound:"#"> => pound.chars().next().unwrap(),
+
+// INNER_BLOCK_DOC :
+//    /*! ( BlockCommentOrDoc | ~[*/] )* */
+pub(crate) InnerBlockDocComment: String = {
+    <comment:r"/\*!([^\*/])*\*/"> => String::from(comment),
 }
-pub(crate) Dollar: char = {
-    <dollar:"$"> => dollar.chars().next().unwrap(),
-}
-pub(crate) Question: char = {
-    <question:"?"> => question.chars().next().unwrap(),
-}
+
+// OUTER_BLOCK_DOC :
+//    /** (~* | BlockCommentOrDoc ) (BlockCommentOrDoc | ~[*/])* */
+
+// BlockCommentOrDoc :
+//       BLOCK_COMMENT
+//    | OUTER_BLOCK_DOC
+//    | INNER_BLOCK_DOC
+
+///////////
+// Paths //
+///////////
+
+// SimplePath : SimplePathSegment ("::" PathSegment)*
+// pub(crate) SimplePath: SimplePath = {
+//     <path:SimplePathSegment> <rest:("::" SimplePathSegment)*> => {
+//         let mut path = path;
+//         for segment in rest {
+//             path.segments.push(segment.1);
+//         }
+//         Path::SimplePath(path)
+//     },
+// }
+
+// SimplePathSegment : Identifier | "super" | "self" | "crate"
+// pub(crate) SimplePathSegment: SimplePathSegment = {
+//     // <ident:Identifier> => SimplePathSegment::Identifier(ident),
+//     // <super:Super> => SimplePathSegment::SuperSegment {
+//     //     segment: String::from("super"),
+//     // },
+//     // <self:SelfValue> => SimplePathSegment::SelfValueSegment {
+//     //     segment: String::from("self"),
+//     // },
+//     // <crate:Crate> => SimplePathSegment::CrateSegment {
+//     //     segment: String::from("crate"),
+//     // },
+// }
 
 ///////////////////////////////
-// Delimiter symbol tokens   //
-//                           //
-// "(" -> LeftParen: char    //
-// ")" -> RightParen: char   //
-// "[" -> LeftBracket: char  //
-// "]" -> RightBracket: char //
-// "{" -> LeftBrace: char    //
-// "}" -> RightBrace: char   //
+// Punctuation symbol tokens //
 ///////////////////////////////
 
-pub(crate) LeftParen: char = {
-    <left_paren:"("> => left_paren.chars().next().unwrap(),
+pub(crate) Plus: Punctuation = {
+    <plus:"+"> => Punctuation::Plus,
 }
-pub(crate) RightParen: char = {
-    <right_paren:")"> => right_paren.chars().next().unwrap(),
+
+pub(crate) Minus: Punctuation = {
+    <minus:"-"> => Punctuation::Minus,
 }
-pub(crate) LeftBracket: char = {
-    <left_bracket:"["> => left_bracket.chars().next().unwrap(),
+
+pub(crate) Star: Punctuation = {
+    <star:"*"> => Punctuation::Star,
 }
-pub(crate) RightBracket: char = {
-    <right_bracket:"]"> => right_bracket.chars().next().unwrap(),
+
+pub(crate) Slash: Punctuation = {
+    <slash:"/"> => Punctuation::Slash,
 }
-pub(crate) LeftBrace: char = {
-    <left_brace:"{"> => left_brace.chars().next().unwrap(),
+
+pub(crate) Backslash: Punctuation = {
+    <backslash:"\\"> => Punctuation::Backslash,
 }
-pub(crate) RightBrace: char = {
-    <right_brace:"}"> => right_brace.chars().next().unwrap(),
+
+pub(crate) Percent: Punctuation = {
+    <percent:"%"> => Punctuation::Percent,
+}
+
+pub(crate) Caret: Punctuation = {
+    <caret:"^"> => Punctuation::Caret,
+}
+
+pub(crate) Not: Punctuation = {
+    <not:"!"> => Punctuation::Not,
+}
+
+pub(crate) And: Punctuation = {
+    <and:"&"> => Punctuation::And,
+}
+
+pub(crate) Or: Punctuation = {
+    <or:"|"> => Punctuation::Or,
+}
+
+pub(crate) AndAnd: Punctuation = {
+    <and_and:"&&"> => Punctuation::AndAnd,
+}
+
+pub(crate) OrOr: Punctuation = {
+    <or_or:"||"> => Punctuation::OrOr,
+}
+
+pub(crate) PlusEquals: Punctuation = {
+    <plus_equals:"+="> => Punctuation::PlusEquals,
+}
+
+pub(crate) MinusEquals: Punctuation = {
+    <minus_equals:"-="> => Punctuation::MinusEquals,
+}
+
+pub(crate) StarEquals: Punctuation = {
+    <star_equals:"*="> => Punctuation::StarEquals,
+}
+
+pub(crate) SlashEquals: Punctuation = {
+    <slash_equals:"/="> => Punctuation::SlashEquals,
+}
+
+pub(crate) PercentEquals: Punctuation = {
+    <percent_equals:"%="> => Punctuation::PercentEquals,
+}
+
+pub(crate) CaretEquals: Punctuation = {
+    <caret_equals:"^="> => Punctuation::CaretEquals,
+}
+
+pub(crate) AndEquals: Punctuation = {
+    <and_equals:"&="> => Punctuation::AndEquals,
+}
+
+pub(crate) OrEquals: Punctuation = {
+    <or_equals:"|="> => Punctuation::OrEquals,
+}
+
+pub(crate) Equals: Punctuation = {
+    <equals:"="> => Punctuation::Equals,
+}
+
+pub(crate) DoubleEquals: Punctuation = {
+    <double_equals:"=="> => Punctuation::DoubleEquals,
+}
+
+pub(crate) NotEqual: Punctuation = {
+    <not_equal:r"!=|≠"> => Punctuation::NotEqual,
+}
+
+pub(crate) LessThan: Punctuation = {
+    <less_than:"<"> => Punctuation::LessThan,
+}
+
+pub(crate) LessThanEqual: Punctuation = {
+    <less_than_equal:r"<=|≤"> => Punctuation::LessThanEqual,
+}
+
+pub(crate) GreaterThan: Punctuation = {
+    <greater_than:">"> => Punctuation::GreaterThan,
+}
+
+pub(crate) GreaterThanEqual: Punctuation = {
+    <greater_than_equal:r">=|≥"> => Punctuation::GreaterThanEqual,
+}
+
+pub(crate) Underscore: Punctuation = {
+    <underscore:"_"> => Punctuation::Underscore,
+}
+
+pub(crate) Dot: Punctuation = {
+    <dot:"."> => Punctuation::Dot,
+}
+
+pub(crate) DotDot: Punctuation = {
+    <dot_dot:".."> => Punctuation::DotDot,
+}
+
+pub(crate) DotDotDot: Punctuation = {
+    <dot_dot_dot:"..."> => Punctuation::DotDotDot,
+}
+
+pub(crate) DotDotEquals: Punctuation = {
+    <dot_dot_equals:"..="> => Punctuation::DotDotEquals,
+}
+
+pub(crate) Comma: Punctuation = {
+    <comma:","> => Punctuation::Comma,
+}
+
+pub(crate) Colon: Punctuation = {
+    <colon:":"> => Punctuation::Colon,
+}
+
+pub(crate) Semicolon: Punctuation = {
+    <semicolon:";"> => Punctuation::Semicolon,
+}
+
+pub(crate) PathSeparator: Punctuation = {
+    <path_separator:"::"> => Punctuation::PathSeparator,
+}
+
+pub(crate) RightArrow: Punctuation = {
+    <right_arrow:r"->|→"> => Punctuation::RightArrow,
+}
+
+pub(crate) LeftArrow: Punctuation = {
+    <left_arrow:r"<-|←"> => Punctuation::LeftArrow,
+}
+
+pub(crate) FatRightArrow: Punctuation = {
+    <fat_right_arrow:r"=>|⇒"> => Punctuation::FatRightArrow,
+}
+
+pub(crate) FatLeftArrow: Punctuation = {
+    <fat_left_arrow:r"⇐"> => Punctuation::FatLeftArrow,
+}
+
+pub(crate) Pound: Punctuation = {
+    <pound:"#"> => Punctuation::Pound,
+}
+
+pub(crate) Dollar: Punctuation = {
+    <dollar:"$"> => Punctuation::Dollar,
+}
+
+pub(crate) Question: Punctuation = {
+    <question:"?"> => Punctuation::Question,
+}
+
+/////////////////////////////
+// Delimiter symbol tokens //
+/////////////////////////////
+
+pub(crate) LeftParen: Delimiter = {
+    <left_paren:"("> => Delimiter::LeftParen,
+}
+pub(crate) RightParen: Delimiter = {
+    <right_paren:")"> => Delimiter::RightParen,
+}
+
+pub(crate) LeftBracket: Delimiter = {
+    <left_bracket:"["> => Delimiter::LeftBracket,
+}
+
+pub(crate) RightBracket: Delimiter = {
+    <right_bracket:"]"> => Delimiter::RightBracket,
+}
+
+pub(crate) LeftBrace: Delimiter = {
+    <left_brace:"{"> => Delimiter::LeftBrace,
+}
+
+pub(crate) RightBrace: Delimiter = {
+    <right_brace:"}"> => Delimiter::RightBrace,
 }
 
 match {
     r"\s*" => {}, // ignore whitespace
     // r"//.*" => {}, // ignore comments
-    r"//[^\n\r]*[\n\r]*" => {}, // ignore comments
+    // r"//[^\n\r]*[\n\r]*" => {}, // ignore comments
     // This `_` means "add in all the other strings and
     // regular expressions in the grammer here" (e.g.,
     // `(`).
@@ -831,7 +1036,8 @@ match {
 
 // match {
 //     // These items have highest precedence.
-//     r"\p{Nd}+([[:WB=MB:][:WB=MN:]]\p{Nd}+)?"
+//     // r"\p{Nd}+([[:WB=MB:][:WB=MN:]]\p{Nd}+)?",
+//     r"[^\n\r\t'\\]"
 //     // These items have next highest precedence.
 // } else {
 //     // These items have next highest precedence.

@@ -1,13 +1,12 @@
-#![allow(dead_code)]
+#![allow(dead_code, unused_imports)]
 mod ast;
 mod cli;
 mod db;
 mod parser_errors;
 
-use std::{
-    fs::read_to_string,
-    path::PathBuf,
-};
+use std::{fs::read_to_string, path::PathBuf};
+
+use ast::*;
 
 use clap::Parser;
 use cli::BalsapopCli;
@@ -17,7 +16,7 @@ use crate::cli::FileNotFound;
 
 #[derive(Debug)]
 struct SourceFile {
-    path:     PathBuf,
+    path: PathBuf,
     contents: ProgramSource,
 }
 
@@ -77,9 +76,9 @@ fn main() -> Result<()> {
 
     println!("Source file: {:#?}", source_file);
     // parser::LiteralExpressionParser::new().parse("22");
-    let ast = parser::LiteralExpressionParser::new()
-        .parse("2212312312312.2e+10")
-        .unwrap();
+    // let ast = parser::LiteralExpressionParser::new()
+    //     .parse("2212312312312.2e+10")
+    //     .unwrap();
 
     // println!("AST: {:?}", ast);
 
@@ -96,8 +95,6 @@ fn main() -> Result<()> {
                     println!("Other error");
                 }
             }
-            let err = parser_errors::InvalidFloatExponent {};
-            err.to_string();
         }
     }
 
@@ -134,7 +131,7 @@ pub(crate) fn get_source_file(
             // )))
 
             Box::new(SourceFile {
-                path:     source_path,
+                path: source_path,
                 contents: ProgramSource { text: source_str },
             })
         }
@@ -828,114 +825,212 @@ mod lexer_test_suite {
     // for emitting tokens along with their lexemes, spans, and usage in the
     // language.
 
+    // TODO refactor lexing to more idiomatic Rust data structures
+    // (e.g. using enums instead of strings)
+    // Example: PlusSignParser::new().parse("+").unwrap() ->
+    // Token::Punctuation::Plus
+
     #[test]
     fn test_lex_punctuation() {
-        assert_eq!(parser::PlusParser::new().parse("+"), Ok('+'));
-        assert_eq!(parser::MinusParser::new().parse("-"), Ok('-'));
-        assert_eq!(parser::StarParser::new().parse("*"), Ok('*'));
-        assert_eq!(parser::SlashParser::new().parse("/"), Ok('/'));
-        assert_eq!(parser::PercentParser::new().parse("%"), Ok('%'));
-        assert_eq!(parser::CaretParser::new().parse("^"), Ok('^'));
-        assert_eq!(parser::NotParser::new().parse("!"), Ok('!'));
-        assert_eq!(parser::AndParser::new().parse("&"), Ok('&'));
-        assert_eq!(parser::OrParser::new().parse("|"), Ok('|'));
+        assert_eq!(parser::PlusParser::new().parse("+"), Ok(Punctuation::Plus));
         assert_eq!(
-            parser::AndAndParser::new().parse("&&"),
-            Ok(String::from("&&"))
+            parser::MinusParser::new().parse("-"),
+            Ok(Punctuation::Minus)
+        );
+        assert_eq!(parser::StarParser::new().parse("*"), Ok(Punctuation::Star));
+        assert_eq!(
+            parser::SlashParser::new().parse("/"),
+            Ok(Punctuation::Slash)
         );
         assert_eq!(
-            parser::OrOrParser::new().parse("||"),
-            Ok(String::from("||"))
+            parser::BackslashParser::new().parse("\\"),
+            Ok(Punctuation::Backslash)
+        );
+        assert_eq!(
+            parser::PercentParser::new().parse("%"),
+            Ok(Punctuation::Percent)
+        );
+        assert_eq!(
+            parser::CaretParser::new().parse("^"),
+            Ok(Punctuation::Caret)
+        );
+        assert_eq!(parser::NotParser::new().parse("!"), Ok(Punctuation::Not));
+        assert_eq!(parser::AndParser::new().parse("&"), Ok(Punctuation::And));
+        assert_eq!(parser::OrParser::new().parse("|"), Ok(Punctuation::Or));
+        assert_eq!(
+            parser::AndAndParser::new().parse("&&"),
+            Ok(Punctuation::AndAnd)
+        );
+        assert_eq!(parser::OrOrParser::new().parse("||"), Ok(Punctuation::OrOr));
+        assert_eq!(
+            parser::PlusEqualsParser::new().parse("+="),
+            Ok(Punctuation::PlusEquals)
         );
         assert_eq!(
             parser::MinusEqualsParser::new().parse("-="),
-            Ok(String::from("-="))
+            Ok(Punctuation::MinusEquals)
         );
         assert_eq!(
             parser::StarEqualsParser::new().parse("*="),
-            Ok(String::from("*="))
+            Ok(Punctuation::StarEquals)
         );
         assert_eq!(
             parser::SlashEqualsParser::new().parse("/="),
-            Ok(String::from("/="))
+            Ok(Punctuation::SlashEquals)
         );
         assert_eq!(
             parser::PercentEqualsParser::new().parse("%="),
-            Ok(String::from("%="))
+            Ok(Punctuation::PercentEquals)
         );
         assert_eq!(
             parser::CaretEqualsParser::new().parse("^="),
-            Ok(String::from("^="))
+            Ok(Punctuation::CaretEquals)
         );
         assert_eq!(
             parser::AndEqualsParser::new().parse("&="),
-            Ok(String::from("&="))
+            Ok(Punctuation::AndEquals)
         );
         assert_eq!(
             parser::OrEqualsParser::new().parse("|="),
-            Ok(String::from("|="))
+            Ok(Punctuation::OrEquals)
         );
-        assert_eq!(parser::EqualsParser::new().parse("="), Ok('='));
+        assert_eq!(
+            parser::EqualsParser::new().parse("="),
+            Ok(Punctuation::Equals)
+        );
         assert_eq!(
             parser::DoubleEqualsParser::new().parse("=="),
-            Ok(String::from("=="))
+            Ok(Punctuation::DoubleEquals)
         );
         assert_eq!(
             parser::NotEqualParser::new().parse("!="),
-            Ok(String::from("!="))
+            Ok(Punctuation::NotEqual)
         );
-        assert_eq!(parser::LessThanParser::new().parse("<"), Ok('<'));
+        assert_eq!(
+            parser::LessThanParser::new().parse("<"),
+            Ok(Punctuation::LessThan)
+        );
         assert_eq!(
             parser::LessThanEqualParser::new().parse("<="),
-            Ok(String::from("<="))
+            Ok(Punctuation::LessThanEqual)
         );
-        assert_eq!(parser::GreaterThanParser::new().parse(">"), Ok('>'));
+        assert_eq!(
+            parser::LessThanEqualParser::new().parse("≤"),
+            Ok(Punctuation::LessThanEqual)
+        );
+        assert_eq!(
+            parser::GreaterThanParser::new().parse(">"),
+            Ok(Punctuation::GreaterThan)
+        );
         assert_eq!(
             parser::GreaterThanEqualParser::new().parse(">="),
-            Ok(String::from(">="))
+            Ok(Punctuation::GreaterThanEqual)
         );
-        assert_eq!(parser::UnderscoreParser::new().parse("_"), Ok('_'));
-        assert_eq!(parser::DotParser::new().parse("."), Ok('.'));
+        assert_eq!(
+            parser::GreaterThanEqualParser::new().parse("≥"),
+            Ok(Punctuation::GreaterThanEqual)
+        );
+        assert_eq!(
+            parser::UnderscoreParser::new().parse("_"),
+            Ok(Punctuation::Underscore)
+        );
+        assert_eq!(parser::DotParser::new().parse("."), Ok(Punctuation::Dot));
         assert_eq!(
             parser::DotDotParser::new().parse(".."),
-            Ok(String::from(".."))
+            Ok(Punctuation::DotDot)
         );
         assert_eq!(
             parser::DotDotDotParser::new().parse("..."),
-            Ok(String::from("..."))
+            Ok(Punctuation::DotDotDot)
         );
         assert_eq!(
             parser::DotDotEqualsParser::new().parse("..="),
-            Ok(String::from("..="))
+            Ok(Punctuation::DotDotEquals)
         );
-        assert_eq!(parser::CommaParser::new().parse(","), Ok(','));
-        assert_eq!(parser::SemicolonParser::new().parse(";"), Ok(';'));
-        assert_eq!(parser::ColonParser::new().parse(":"), Ok(':'));
+        assert_eq!(
+            parser::CommaParser::new().parse(","),
+            Ok(Punctuation::Comma)
+        );
+        assert_eq!(
+            parser::SemicolonParser::new().parse(";"),
+            Ok(Punctuation::Semicolon)
+        );
+        assert_eq!(
+            parser::ColonParser::new().parse(":"),
+            Ok(Punctuation::Colon)
+        );
         assert_eq!(
             parser::PathSeparatorParser::new().parse("::"),
-            Ok(String::from("::"))
+            Ok(Punctuation::PathSeparator)
         );
         assert_eq!(
             parser::RightArrowParser::new().parse("->"),
-            Ok(String::from("->"))
+            Ok(Punctuation::RightArrow)
         );
         assert_eq!(
-            parser::FatArrowParser::new().parse("=>"),
-            Ok(String::from("=>"))
+            parser::RightArrowParser::new().parse("→"),
+            Ok(Punctuation::RightArrow)
         );
-        assert_eq!(parser::PoundParser::new().parse("#"), Ok('#'));
-        assert_eq!(parser::DollarParser::new().parse("$"), Ok('$'));
-        assert_eq!(parser::QuestionParser::new().parse("?"), Ok('?'));
+        assert_eq!(
+            parser::LeftArrowParser::new().parse("<-"),
+            Ok(Punctuation::LeftArrow)
+        );
+        assert_eq!(
+            parser::LeftArrowParser::new().parse("←"),
+            Ok(Punctuation::LeftArrow)
+        );
+        assert_eq!(
+            parser::FatRightArrowParser::new().parse("=>"),
+            Ok(Punctuation::FatRightArrow)
+        );
+        assert_eq!(
+            parser::FatRightArrowParser::new().parse("⇒"),
+            Ok(Punctuation::FatRightArrow)
+        );
+        assert_eq!(
+            parser::FatLeftArrowParser::new().parse("⇐"),
+            Ok(Punctuation::FatLeftArrow)
+        );
+        assert_eq!(
+            parser::PoundParser::new().parse("#"),
+            Ok(Punctuation::Pound)
+        );
+        assert_eq!(
+            parser::DollarParser::new().parse("$"),
+            Ok(Punctuation::Dollar)
+        );
+        assert_eq!(
+            parser::QuestionParser::new().parse("?"),
+            Ok(Punctuation::Question)
+        );
     }
 
     #[test]
     fn test_lex_delimiters() {
-        assert_eq!(parser::LeftParenParser::new().parse("("), Ok('('));
-        assert_eq!(parser::RightParenParser::new().parse(")"), Ok(')'));
-        assert_eq!(parser::LeftBracketParser::new().parse("["), Ok('['));
-        assert_eq!(parser::RightBracketParser::new().parse("]"), Ok(']'));
-        assert_eq!(parser::LeftBraceParser::new().parse("{"), Ok('{'));
-        assert_eq!(parser::RightBraceParser::new().parse("}"), Ok('}'));
+        assert_eq!(
+            parser::LeftParenParser::new().parse("("),
+            Ok(Delimiter::LeftParen)
+        );
+        assert_eq!(
+            parser::RightParenParser::new().parse(")"),
+            Ok(Delimiter::RightParen)
+        );
+        assert_eq!(
+            parser::LeftBracketParser::new().parse("["),
+            Ok(Delimiter::LeftBracket)
+        );
+        assert_eq!(
+            parser::RightBracketParser::new().parse("]"),
+            Ok(Delimiter::RightBracket)
+        );
+        assert_eq!(
+            parser::LeftBraceParser::new().parse("{"),
+            Ok(Delimiter::LeftBrace)
+        );
+        assert_eq!(
+            parser::RightBraceParser::new().parse("}"),
+            Ok(Delimiter::RightBrace)
+        );
     }
 
     #[test]
@@ -1092,6 +1187,141 @@ mod lexer_test_suite {
     }
 
     #[test]
+    fn test_lex_mathematical_constants() {
+        ////////////////////////////
+        // Mathematical Constants //
+        ////////////////////////////
+
+        // Pi Terminals (π)
+        assert_eq!(
+            parser::PiParser::new().parse("pi"),
+            Ok(MathematicalConstant::Pi {
+                value: std::f64::consts::PI,
+            })
+        );
+        assert_eq!(
+            parser::PiParser::new().parse("π"),
+            Ok(MathematicalConstant::Pi {
+                value: std::f64::consts::PI,
+            })
+        );
+        assert_eq!(
+            parser::PiParser::new().parse("𝜋"),
+            Ok(MathematicalConstant::Pi {
+                value: std::f64::consts::PI,
+            })
+        );
+
+        // Euler's Number Terminals (e)
+        assert_eq!(
+            parser::EulerParser::new().parse("ℯ"),
+            Ok(MathematicalConstant::Euler {
+                value: std::f64::consts::E,
+            })
+        );
+        assert_eq!(
+            parser::EulerParser::new().parse("euler"),
+            Ok(MathematicalConstant::Euler {
+                value: std::f64::consts::E,
+            })
+        );
+
+        // Tau Terminals (τ)
+        assert_eq!(
+            parser::TauParser::new().parse("tau"),
+            Ok(MathematicalConstant::Tau {
+                value: std::f64::consts::TAU,
+            })
+        );
+        assert_eq!(
+            parser::TauParser::new().parse("τ"),
+            Ok(MathematicalConstant::Tau {
+                value: std::f64::consts::TAU,
+            })
+        );
+        assert_eq!(
+            parser::TauParser::new().parse("𝜏"),
+            Ok(MathematicalConstant::Tau {
+                value: std::f64::consts::TAU,
+            })
+        );
+
+        // Catalan's Constant Terminals (γ)
+        assert_eq!(
+            parser::CatalanParser::new().parse("catalan"),
+            Ok(MathematicalConstant::Catalan {
+                value: 0.91596559417721901505460351493238411077414937428167,
+            })
+        );
+
+        // Golden Ratio Terminals (φ)
+        assert_eq!(
+            parser::GoldenRatioParser::new().parse("golden"),
+            Ok(MathematicalConstant::GoldenRatio {
+                value: 1.618033988749895,
+            })
+        );
+        assert_eq!(
+            parser::GoldenRatioParser::new().parse("φ"),
+            Ok(MathematicalConstant::GoldenRatio {
+                value: 1.618033988749895,
+            })
+        );
+        assert_eq!(
+            parser::GoldenRatioParser::new().parse("𝜙"),
+            Ok(MathematicalConstant::GoldenRatio {
+                value: 1.618033988749895,
+            })
+        );
+
+        // Euler Mascheroni Constant Terminals (γ)
+        assert_eq!(
+            parser::EulerMascheroniParser::new().parse("eulermascheroni"),
+            Ok(MathematicalConstant::EulerMascheroni {
+                value: 0.5772156649015329,
+            })
+        );
+        assert_eq!(
+            parser::EulerMascheroniParser::new().parse("eulergamma"),
+            Ok(MathematicalConstant::EulerMascheroni {
+                value: 0.5772156649015329,
+            })
+        );
+        assert_eq!(
+            parser::EulerMascheroniParser::new().parse("γ"),
+            Ok(MathematicalConstant::EulerMascheroni {
+                value: 0.5772156649015329,
+            })
+        );
+        assert_eq!(
+            parser::EulerMascheroniParser::new().parse("𝛾"),
+            Ok(MathematicalConstant::EulerMascheroni {
+                value: 0.5772156649015329,
+            })
+        );
+
+        // Infinity Terminals (∞)
+        assert_eq!(
+            parser::InfinityParser::new().parse("Inf"),
+            Ok(MathematicalConstant::Infinity {
+                value: std::f64::INFINITY,
+            })
+        );
+        assert_eq!(
+            parser::InfinityParser::new().parse("∞"),
+            Ok(MathematicalConstant::Infinity {
+                value: std::f64::INFINITY,
+            })
+        );
+
+        // Not a Number Terminals (NaN)
+        assert_eq!(
+            parser::NotANumberParser::new().parse("NaN"),
+            Ok(MathematicalConstant::NotANumber)
+        );
+    }
+
+    #[test]
     fn test_lex_character_and_string_literals() {
         // Apostrophe
         assert_eq!(parser::ApostropheParser::new().parse("'"), Ok('\''));
@@ -1102,101 +1332,83 @@ mod lexer_test_suite {
 
     #[test]
     fn test_lex_keywords() {
-        assert_eq!(parser::AsParser::new().parse("as"), Ok(ast::Keyword::As));
+        assert_eq!(parser::AsParser::new().parse("as"), Ok(Keyword::As));
         assert_eq!(
             parser::BreakParser::new().parse("break"),
-            Ok(ast::Keyword::Break)
+            Ok(Keyword::Break)
         );
         assert_eq!(
             parser::ConstParser::new().parse("const"),
-            Ok(ast::Keyword::Const)
+            Ok(Keyword::Const)
         );
         assert_eq!(
             parser::ContinueParser::new().parse("continue"),
-            Ok(ast::Keyword::Continue)
+            Ok(Keyword::Continue)
         );
         assert_eq!(
             parser::CrateParser::new().parse("crate"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Crate))
+            Ok(Keyword::Reserved(ReservedKeyword::Crate))
         );
-        assert_eq!(
-            parser::ElseParser::new().parse("else"),
-            Ok(ast::Keyword::Else)
-        );
-        assert_eq!(
-            parser::EnumParser::new().parse("enum"),
-            Ok(ast::Keyword::Enum)
-        );
+        assert_eq!(parser::ElseParser::new().parse("else"), Ok(Keyword::Else));
+        assert_eq!(parser::EnumParser::new().parse("enum"), Ok(Keyword::Enum));
         assert_eq!(
             parser::ExternParser::new().parse("extern"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Extern))
+            Ok(Keyword::Reserved(ReservedKeyword::Extern))
         );
         assert_eq!(
             parser::FalseParser::new().parse("false"),
-            Ok(ast::Keyword::False)
+            Ok(Keyword::False)
         );
-        assert_eq!(parser::FnParser::new().parse("fn"), Ok(ast::Keyword::Fn));
-        assert_eq!(parser::ForParser::new().parse("for"), Ok(ast::Keyword::For));
-        assert_eq!(parser::IfParser::new().parse("if"), Ok(ast::Keyword::If));
-        assert_eq!(
-            parser::ImplParser::new().parse("impl"),
-            Ok(ast::Keyword::Impl)
-        );
-        assert_eq!(parser::InParser::new().parse("in"), Ok(ast::Keyword::In));
-        assert_eq!(
-            parser::LoopParser::new().parse("loop"),
-            Ok(ast::Keyword::Loop)
-        );
+        assert_eq!(parser::FnParser::new().parse("fn"), Ok(Keyword::Fn));
+        assert_eq!(parser::ForParser::new().parse("for"), Ok(Keyword::For));
+        assert_eq!(parser::IfParser::new().parse("if"), Ok(Keyword::If));
+        assert_eq!(parser::ImplParser::new().parse("impl"), Ok(Keyword::Impl));
+        assert_eq!(parser::InParser::new().parse("in"), Ok(Keyword::In));
+        assert_eq!(parser::LoopParser::new().parse("loop"), Ok(Keyword::Loop));
         assert_eq!(
             parser::MatchParser::new().parse("match"),
-            Ok(ast::Keyword::Match)
+            Ok(Keyword::Match)
         );
-        assert_eq!(parser::ModParser::new().parse("mod"), Ok(ast::Keyword::Mod));
-        assert_eq!(parser::PubParser::new().parse("pub"), Ok(ast::Keyword::Pub));
+        assert_eq!(parser::ModParser::new().parse("mod"), Ok(Keyword::Mod));
+        assert_eq!(parser::PubParser::new().parse("pub"), Ok(Keyword::Pub));
         assert_eq!(
             parser::ReturnParser::new().parse("return"),
-            Ok(ast::Keyword::Return)
+            Ok(Keyword::Return)
         );
         assert_eq!(
             parser::SelfValueParser::new().parse("self"),
-            Ok(ast::Keyword::SelfValue)
+            Ok(Keyword::SelfValue)
         );
         assert_eq!(
             parser::SelfTypeParser::new().parse("Self"),
-            Ok(ast::Keyword::SelfType)
+            Ok(Keyword::SelfType)
         );
         assert_eq!(
             parser::StaticParser::new().parse("static"),
-            Ok(ast::Keyword::Static)
+            Ok(Keyword::Static)
         );
         assert_eq!(
             parser::StructParser::new().parse("struct"),
-            Ok(ast::Keyword::Struct)
+            Ok(Keyword::Struct)
         );
         assert_eq!(
             parser::SuperParser::new().parse("super"),
-            Ok(ast::Keyword::Super)
+            Ok(Keyword::Super)
         );
         assert_eq!(
             parser::TraitParser::new().parse("trait"),
-            Ok(ast::Keyword::Trait)
+            Ok(Keyword::Trait)
         );
-        assert_eq!(
-            parser::TrueParser::new().parse("true"),
-            Ok(ast::Keyword::True)
-        );
-        assert_eq!(
-            parser::TypeParser::new().parse("type"),
-            Ok(ast::Keyword::Type)
-        );
-        assert_eq!(parser::UseParser::new().parse("use"), Ok(ast::Keyword::Use));
+        assert_eq!(parser::TrueParser::new().parse("true"), Ok(Keyword::True));
+        assert_eq!(parser::TypeParser::new().parse("type"), Ok(Keyword::Type));
+        assert_eq!(parser::UseParser::new().parse("use"), Ok(Keyword::Use));
         assert_eq!(
             parser::WhereParser::new().parse("where"),
-            Ok(ast::Keyword::Where)
+            Ok(Keyword::Where)
         );
         assert_eq!(
             parser::WhileParser::new().parse("while"),
-            Ok(ast::Keyword::While)
+            Ok(Keyword::While)
         );
     }
 
@@ -1204,95 +1416,328 @@ mod lexer_test_suite {
     fn text_lex_reserved_keywords() {
         assert_eq!(
             parser::AbstractParser::new().parse("abstract"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Abstract))
+            Ok(Keyword::Reserved(ReservedKeyword::Abstract))
         );
         assert_eq!(
             parser::AsyncParser::new().parse("async"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Async))
+            Ok(Keyword::Reserved(ReservedKeyword::Async))
         );
         assert_eq!(
             parser::AwaitParser::new().parse("await"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Await))
+            Ok(Keyword::Reserved(ReservedKeyword::Await))
         );
         assert_eq!(
             parser::CrateParser::new().parse("crate"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Crate))
+            Ok(Keyword::Reserved(ReservedKeyword::Crate))
         );
         assert_eq!(
             parser::DoParser::new().parse("do"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Do))
+            Ok(Keyword::Reserved(ReservedKeyword::Do))
         );
         assert_eq!(
             parser::DynParser::new().parse("dyn"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Dyn))
+            Ok(Keyword::Reserved(ReservedKeyword::Dyn))
         );
         assert_eq!(
             parser::ExportParser::new().parse("export"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Export))
+            Ok(Keyword::Reserved(ReservedKeyword::Export))
         );
         assert_eq!(
             parser::ExternParser::new().parse("extern"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Extern))
+            Ok(Keyword::Reserved(ReservedKeyword::Extern))
         );
         assert_eq!(
             parser::FinalParser::new().parse("final"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Final))
+            Ok(Keyword::Reserved(ReservedKeyword::Final))
         );
         assert_eq!(
             parser::ImportParser::new().parse("import"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Import))
+            Ok(Keyword::Reserved(ReservedKeyword::Import))
         );
         assert_eq!(
             parser::LetParser::new().parse("let"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Let))
+            Ok(Keyword::Reserved(ReservedKeyword::Let))
         );
         assert_eq!(
             parser::MacroParser::new().parse("macro"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Macro))
+            Ok(Keyword::Reserved(ReservedKeyword::Macro))
         );
         assert_eq!(
             parser::MoveParser::new().parse("move"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Move))
+            Ok(Keyword::Reserved(ReservedKeyword::Move))
         );
         assert_eq!(
             parser::MutParser::new().parse("mut"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Mut))
+            Ok(Keyword::Reserved(ReservedKeyword::Mut))
         );
         assert_eq!(
             parser::OverrideParser::new().parse("override"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Override))
+            Ok(Keyword::Reserved(ReservedKeyword::Override))
         );
         assert_eq!(
             parser::PrivParser::new().parse("priv"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Priv))
+            Ok(Keyword::Reserved(ReservedKeyword::Priv))
         );
         assert_eq!(
             parser::ProcParser::new().parse("proc"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Proc))
+            Ok(Keyword::Reserved(ReservedKeyword::Proc))
         );
         assert_eq!(
             parser::RefParser::new().parse("ref"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Ref))
+            Ok(Keyword::Reserved(ReservedKeyword::Ref))
         );
         assert_eq!(
             parser::TypeofParser::new().parse("typeof"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Typeof))
+            Ok(Keyword::Reserved(ReservedKeyword::Typeof))
         );
         assert_eq!(
             parser::UnsafeParser::new().parse("unsafe"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Unsafe))
+            Ok(Keyword::Reserved(ReservedKeyword::Unsafe))
         );
         assert_eq!(
             parser::UnsizedParser::new().parse("unsized"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Unsized))
+            Ok(Keyword::Reserved(ReservedKeyword::Unsized))
         );
         assert_eq!(
             parser::VirtualParser::new().parse("virtual"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Virtual))
+            Ok(Keyword::Reserved(ReservedKeyword::Virtual))
         );
         assert_eq!(
             parser::YieldParser::new().parse("yield"),
-            Ok(ast::Keyword::Reserved(ast::ReservedKeyword::Yield))
+            Ok(Keyword::Reserved(ReservedKeyword::Yield))
         );
     }
+
+    #[test]
+    fn test_lex_comments() {
+        // Line comments
+        assert_eq!(
+            parser::LineCommentParser::new().parse("//"),
+            Ok(Comment::LineComment {
+                comment: String::from("//"),
+            })
+        );
+
+        assert_eq!(
+            parser::LineCommentParser::new().parse("//   - Only a comment"),
+            Ok(Comment::LineComment {
+                comment: String::from("//   - Only a comment"),
+            })
+        );
+        assert_eq!(
+            parser::LineCommentParser::new().parse("// Hello, world!"),
+            Ok(Comment::LineComment {
+                comment: String::from("// Hello, world!"),
+            })
+        );
+        assert_eq!(
+            parser::LineCommentParser::new().parse("// Hello, \tworld!"),
+            Ok(Comment::LineComment {
+                comment: String::from("// Hello, \tworld!"),
+            })
+        );
+        assert_eq!(
+            parser::LineCommentParser::new().parse(
+                "// This is an incredibly long line comment that should be parsed \
+                 correctly. It should also be parsed correctly if it contains a \
+                 newline"
+            ),
+            Ok(Comment::LineComment {
+                comment: String::from(
+                    "// This is an incredibly long line comment that should be \
+                     parsed correctly. It should also be parsed correctly if it \
+                     contains a newline"
+                ),
+            })
+        );
+        assert!(parser::LineCommentParser::new()
+            .parse("// Hello, \nworld!")
+            .is_err());
+
+        // Block comments
+        assert_eq!(
+            parser::BlockCommentParser::new().parse("/* */"),
+            Ok(Comment::BlockComment {
+                comment: String::from("/* */"),
+            })
+        );
+        assert_eq!(
+            parser::BlockCommentParser::new().parse("/**/"),
+            Ok(Comment::BlockComment {
+                comment: String::from("/**/"),
+            })
+        );
+        assert_eq!(
+            parser::BlockCommentParser::new().parse("/***/"),
+            Ok(Comment::BlockComment {
+                comment: String::from("/***/"),
+            })
+        );
+        assert_eq!(
+            parser::BlockCommentParser::new().parse("/*   - Only a comment */"),
+            Ok(Comment::BlockComment {
+                comment: String::from("/*   - Only a comment */"),
+            })
+        );
+        assert_eq!(
+            parser::BlockCommentParser::new().parse("/*** - Only a comment */"),
+            Ok(Comment::BlockComment {
+                comment: String::from("/*** - Only a comment */"),
+            })
+        );
+        assert_eq!(
+            parser::BlockCommentParser::new().parse("/* Hello, world! */"),
+            Ok(Comment::BlockComment {
+                comment: String::from("/* Hello, world! */"),
+            })
+        );
+        assert_eq!(
+            parser::BlockCommentParser::new().parse("/* Hello, \tworld! */"),
+            Ok(Comment::BlockComment {
+                comment: String::from("/* Hello, \tworld! */"),
+            })
+        );
+        assert_eq!(
+            parser::BlockCommentParser::new().parse(
+                "/* This is an incredibly long\nblock comment that should be \
+                 parsed correctly.\nIt should also be parsed correctly if it \
+                 contains a newline */"
+            ),
+            Ok(Comment::BlockComment {
+                comment: String::from(
+                    "/* This is an incredibly long\nblock comment that should be \
+                     parsed correctly.\nIt should also be parsed correctly if it \
+                     contains a newline */"
+                ),
+            })
+        );
+        // TODO: Add implementation for nested block comments in the grammar
+        // assert_eq!(
+        //     parser::BlockCommentParser::new()
+        //         .parse("/* In Balsapop /* we can /* nest comments */ */ */"),
+        //     Ok(Comment::BlockComment {
+        //         comment: String::from(
+        //             "/* In Balsapop /* we can /* nest comments */ */ */"
+        //         ),
+        //     })
+        // );
+
+        // Doc comments (e.g. outer line doc comments, inner line doc comments, outer
+        // block doc comments, inner block doc comments)
+
+        // - Outer line doc comments
+        assert_eq!(
+            parser::OuterLineDocCommentParser::new().parse("///"),
+            Ok(Comment::DocComment(DocComment::OuterLineDocComment {
+                comment: String::from("///"),
+            }))
+        );
+        assert_eq!(
+            parser::OuterLineDocCommentParser::new()
+                .parse("///  - Outer line doc (exactly 3 slashes)"),
+            Ok(Comment::DocComment(DocComment::OuterLineDocComment {
+                comment: String::from("///  - Outer line doc (exactly 3 slashes)"),
+            }))
+        );
+        assert_eq!(
+            parser::OuterLineDocCommentParser::new().parse("/// Hello, world!"),
+            Ok(Comment::DocComment(DocComment::OuterLineDocComment {
+                comment: String::from("/// Hello, world!"),
+            }))
+        );
+        assert_eq!(
+            parser::OuterLineDocCommentParser::new().parse("/// Hello, \tworld!"),
+            Ok(Comment::DocComment(DocComment::OuterLineDocComment {
+                comment: String::from("/// Hello, \tworld!"),
+            }))
+        );
+        assert_eq!(
+            parser::OuterLineDocCommentParser::new().parse(
+                "/// This is an incredibly long line comment that should be parsed \
+                 correctly. It should also be parsed correctly if it contains a \
+                 newline"
+            ),
+            Ok(Comment::DocComment(DocComment::OuterLineDocComment {
+                comment: String::from(
+                    "/// This is an incredibly long line comment that should be \
+                     parsed correctly. It should also be parsed correctly if it \
+                     contains a newline"
+                ),
+            }))
+        );
+        assert!(parser::OuterLineDocCommentParser::new()
+            .parse("/// Hello, \nworld!")
+            .is_err());
+        assert!(parser::OuterLineDocCommentParser::new()
+            .parse("//// Hello, \nworld!")
+            .is_err());
+
+        // - Inner line doc comments
+        assert_eq!(
+            parser::InnerLineDocCommentParser::new().parse("//!"),
+            Ok(Comment::DocComment(DocComment::InnerLineDocComment {
+                comment: String::from("//!"),
+            }))
+        );
+        assert_eq!(
+            parser::InnerLineDocCommentParser::new().parse("//! Hello, world!"),
+            Ok(Comment::DocComment(DocComment::InnerLineDocComment {
+                comment: String::from("//! Hello, world!"),
+            }))
+        );
+        assert_eq!(
+            parser::InnerLineDocCommentParser::new().parse("//! Hello, \tworld!"),
+            Ok(Comment::DocComment(DocComment::InnerLineDocComment {
+                comment: String::from("//! Hello, \tworld!"),
+            }))
+        );
+        assert_eq!(
+            parser::InnerLineDocCommentParser::new().parse(
+                "//! This is an incredibly long line comment that should be parsed \
+                 correctly. It should also be parsed correctly if it contains a \
+                 newline"
+            ),
+            Ok(Comment::DocComment(DocComment::InnerLineDocComment {
+                comment: String::from(
+                    "//! This is an incredibly long line comment that should be \
+                     parsed correctly. It should also be parsed correctly if it \
+                     contains a newline"
+                ),
+            }))
+        );
+        assert!(parser::InnerLineDocCommentParser::new()
+            .parse("//! Hello, \nworld!")
+            .is_err());
+
+        // - Outer block doc comments
+        // /**  - Outer block doc (exactly) 2 asterisks */
+    }
+
+    // fn test_lex_paths() {
+        // Simple path segments
+        // assert_eq!(
+        //     parser::SimplePathSegmentParser::new().parse("a"),
+        //     Ok(PathSegment::Simple(SimplePathSegment {
+        //         name: String::from("a"),
+        //     }))
+        // );
+        // assert_eq!(
+        //     parser::SimplePathSegmentParser::new().parse("super"),
+        //     Ok(SimplePathSegment::SuperSegment {
+        //         segment: String::from("super"),
+        //     })
+        // );
+        // assert_eq!(
+        //     parser::SimplePathSegmentParser::new().parse("self"),
+        //     Ok(SimplePathSegment::SelfValueSegment {
+        //         segment: String::from("self"),
+        //     })
+        // );
+        // assert_eq!(
+        //     parser::SimplePathSegmentParser::new().parse("crate"),
+        //     Ok(SimplePathSegment::CrateSegment {
+        //         segment: String::from("crate"),
+        //     })
+        // );
+    // }
 }

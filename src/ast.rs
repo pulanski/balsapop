@@ -7,11 +7,10 @@
 
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum LiteralExpression {
-    Integer { n: i64 },
-    Float { f: f64 },
-    String { s: String },
-    Char { c: char },
-    Bool { b: bool },
+    NumericLiteral(NumericLiteral),
+    // String(StringLiteral),
+    // Char(CharacterLiteral),
+    // Bool(BooleanLiteral),
 }
 
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
@@ -75,6 +74,28 @@ pub enum ReservedKeyword {
 }
 
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub enum Comment {
+    LineComment { comment: String },
+    BlockComment { comment: String },
+    DocComment(DocComment),
+}
+
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub enum DocComment {
+    InnerLineDocComment { comment: String },
+    InnerBlockDocComment { comment: String },
+    OuterLineDocComment { comment: String },
+    OuterBlockDocComment { comment: String },
+}
+
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub enum NumericLiteral {
+    Integer(Integer),
+    Float(Float),
+    MathematicalConstant(MathematicalConstant),
+}
+
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum Integer {
     U8 { n: u8 },
     U16 { n: u16 },
@@ -89,3 +110,103 @@ pub enum Integer {
     I128 { n: i128 },
     ISize { n: isize },
 }
+
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub enum Float {
+    F32 { f: f32 },
+    F64 { f: f64 },
+}
+
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub enum MathematicalConstant {
+    Pi { value: f64 },
+    Euler { value: f64 },
+    EulerMascheroni { value: f64 },
+    Tau { value: f64 },
+    Catalan { value: f64 },
+    GoldenRatio { value: f64 },
+    Infinity { value: f64 },
+    NotANumber,
+}
+
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub enum Punctuation {
+    Plus,
+    Minus,
+    Star,
+    Slash,
+    Backslash,
+    Percent,
+    Caret,
+    Not,
+    And,
+    Or,
+    AndAnd,
+    OrOr,
+    PlusEquals,
+    MinusEquals,
+    StarEquals,
+    SlashEquals,
+    PercentEquals,
+    CaretEquals,
+    AndEquals,
+    OrEquals,
+    Equals,
+    DoubleEquals,
+    NotEqual,
+    LessThan,
+    LessThanEqual,
+    GreaterThan,
+    GreaterThanEqual,
+    Underscore,
+    Dot,
+    DotDot,
+    DotDotDot,
+    DotDotEquals,
+    Comma,
+    Colon,
+    Semicolon,
+    PathSeparator,
+    RightArrow,
+    LeftArrow,
+    FatRightArrow,
+    FatLeftArrow,
+    Pound,
+    Dollar,
+    Question,
+}
+
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub enum Delimiter {
+    LeftParen,
+    RightParen,
+    LeftBracket,
+    RightBracket,
+    LeftBrace,
+    RightBrace,
+}
+
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub struct SimplePath {
+    pub segments: Vec<SimplePathSegment>,
+}
+
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub enum SimplePathSegment {
+    /// NOTE: naming is done in this manner to avoid conflicts with the
+    /// keywords "crate", "self", and "super"
+    IdentifierSegment { segment: String },
+    SuperSegment { segment: String },
+    SelfValueSegment { segment: String },
+    CrateSegment { segment: String },
+    // DollarCrate { segment: String },
+}
+
+// #[derive(Clone, Debug, PartialEq, PartialOrd)]
+// pub enum Whitespace {
+//     Space,
+//     Tab,
+//     Newline,
+//     CarriageReturn,
+//     LineFeed,
+// }
