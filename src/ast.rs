@@ -29,6 +29,7 @@ pub enum Keyword {
     In,
     Loop,
     Match,
+    Missing,
     Mod,
     Pub,
     Reserved(ReservedKeyword),
@@ -187,6 +188,55 @@ pub enum Delimiter {
 }
 
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub enum MathematicalSymbol {
+    Root { exponent: i8 },
+    Power { exponent: i8 },
+    Division,
+    ProportionalTo,
+    Intersection,
+    Union,
+    Integral,
+    Sum,
+    Therefore,
+    Because,
+    ApproximatelyEqual,
+    NotApproximatelyEqual,
+    IdenticalTo,
+    NotIdenticalTo,
+    SubsetOf,
+    SubsetOfOrEqualTo,
+    NotSubsetOf,
+    SupersetOf,
+    NotSupersetOf,
+    SupersetOfOrEqualTo,
+    Logarithm,
+    NaturalLogarithm,
+}
+
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub struct Exponent {
+    pub value: i8,
+}
+
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub struct SuperscriptIntegerLiteral {
+    pub n: i8,
+}
+
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub struct SuperscriptDecimalDigit {
+    pub digit: i8,
+}
+
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub enum SuperscriptPunctuation {
+    Plus,
+    Minus,
+    LeftParen,
+    RightParen,
+}
+
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct SimplePath {
     pub segments: Vec<SimplePathSegment>,
 }
@@ -200,6 +250,13 @@ pub enum SimplePathSegment {
     SelfValueSegment { segment: String },
     CrateSegment { segment: String },
     // DollarCrate { segment: String },
+}
+
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub enum LogicLiteral {
+    True { value: bool },
+    False { value: bool },
+    Missing
 }
 
 // #[derive(Clone, Debug, PartialEq, PartialOrd)]

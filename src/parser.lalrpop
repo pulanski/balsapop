@@ -94,9 +94,10 @@ pub(crate) Extern: Keyword = {
     "extern" => Keyword::Reserved(ReservedKeyword::Extern),
 }
 
-// "false"
+// "false" | "False"
 pub(crate) False: Keyword = {
     "false" => Keyword::False,
+    "False" => Keyword::False,
 }
 
 // "final"
@@ -152,6 +153,12 @@ pub(crate) Macro: Keyword = {
 // "match"
 pub(crate) Match: Keyword = {
     "match" => Keyword::Match,
+}
+
+// "missing" | "Missing"
+pub(crate) Missing: Keyword = {
+    "missing" => Keyword::Missing,
+    "Missing" => Keyword::Missing,
 }
 
 // "mod"
@@ -232,6 +239,7 @@ pub(crate) Trait: Keyword = {
 // "true"
 pub(crate) True: Keyword = {
     "true" => Keyword::True,
+    "True" => Keyword::True,
 }
 
 // "type"
@@ -821,6 +829,25 @@ pub(crate) InnerBlockDocComment: String = {
 //     // },
 // }
 
+//////////////////
+// LogicLiteral //
+//////////////////
+
+// Supports Three-valued Logic (https://en.wikipedia.org/wiki/Three-valued_logic) with a loose syntax for better ease of use and lower learning curve when coming from different families of languages.
+// LogicLiteral : "true" | "false" | "missing" | "True" | "False" | "Missing"
+pub(crate) LogicLiteral: LogicLiteral = {
+    // TODO LowerTrue | UpperTrue | LowerFalse | UpperFalse | LowerMissing | UpperMissing in the future in terminals lexed via the lexer
+
+    // Integrala..b()
+    <true_terminal:True> => LogicLiteral::True {
+        value: true,
+    },
+    <false_terminal:False> => LogicLiteral::False {
+        value: false,
+    },
+    <lower_missing:Missing> => LogicLiteral::Missing,
+}
+
 ///////////////////////////////
 // Punctuation symbol tokens //
 ///////////////////////////////
@@ -997,30 +1024,318 @@ pub(crate) Question: Punctuation = {
     <question:"?"> => Punctuation::Question,
 }
 
+//////////////////////////
+// Mathematical Symbols //
+//////////////////////////
+
+pub(crate) MathematicalSymbol: MathematicalSymbol = {
+    <root:Root> => root,
+    <power:Power> => power,
+    <division:Division> => division,
+    <proportional_to:ProportionalTo> => proportional_to,
+    <intersection:Intersection> => intersection,
+    <union:Union> => union,
+    <integral:Integral> => integral,
+    <sum:Sum> => sum,
+    <therefore:Therefore> => therefore,
+    <because:Because> => because,
+    <approximately_equal:ApproximatelyEqual> => approximately_equal,
+    <not_approximately_equal:NotApproximatelyEqual> => not_approximately_equal,
+    <identical_to:IdenticalTo> => identical_to,
+    <not_identical_to:NotIdenticalTo> => not_identical_to,
+    <subset_of:SubsetOf> => subset_of,
+    <subset_of_or_equal_to:SubsetOfOrEqualTo> => subset_of_or_equal_to,
+    <not_subset_of:NotSubsetOf> => not_subset_of,
+    <superset_of:SupersetOf> => superset_of,
+    <superset_of_or_equal_to:SupersetOfOrEqualTo> => superset_of_or_equal_to,
+    <not_superset_of:NotSupersetOf> => not_superset_of,
+    // <element_of:ElementOf> => element_of,
+    // <cross_product:CrossProduct> => cross_product,
+    // <product:Product> => product,
+    // <partial_derivative:PartialDerivative> => partial_derivative,
+    // <multiplication:"×"> => multiplication,
+    // <plus_minus:"±"> => plus_minus,
+    // <minus_plus:"∓"> => minus_plus,
+}
+
+// Powers (e.g. ² or ³ in 2³ = 8 or 3² = 9)
+
+pub(crate) Power: MathematicalSymbol = {
+    <exponent:Exponent> => MathematicalSymbol::Power { exponent: exponent.value },
+}
+
+pub(crate) Root: MathematicalSymbol = {
+    <square_root:RootSymbol> => square_root,
+    <cube_root:CubeRoot> => cube_root,
+    <fourth_root:FourthRoot> => fourth_root,
+    <integer_literal_root:IntegerLiteralRoot> => integer_literal_root,
+}
+
+RootSymbol: MathematicalSymbol = {
+    "√" => MathematicalSymbol::Root { exponent: 2 },
+}
+
+CubeRoot: MathematicalSymbol = {
+    "∛" => MathematicalSymbol::Root { exponent: 3 },
+}
+
+FourthRoot: MathematicalSymbol = {
+    <fourth_root:"∜"> => MathematicalSymbol::Root { exponent: 4 },
+}
+
+IntegerLiteralRoot: MathematicalSymbol = {
+    <exponent:Exponent> <root_symbol:RootSymbol> => MathematicalSymbol::Root { exponent: exponent.value },
+}
+
+Exponent: Exponent = {
+    <superscript_plus_or_minus:SuperscriptPlusOrMinusSign?> <superscript_exponent:SuperscriptIntegerLiteral> => Exponent {
+        value: match superscript_plus_or_minus {
+            Some(SuperscriptPunctuation::Plus) => superscript_exponent.n,
+            Some(SuperscriptPunctuation::Minus) => -superscript_exponent.n,
+            None => superscript_exponent.n,
+            _ => unreachable!(),
+        },
+        // exponent: superscript_exponent.n,
+    },
+}
+
+Division: MathematicalSymbol = {
+    <division:"÷"> => MathematicalSymbol::Division,
+}
+
+ProportionalTo: MathematicalSymbol = {
+    <proportional_to:"∝"> => MathematicalSymbol::ProportionalTo,
+}
+
+Intersection: MathematicalSymbol = {
+    <intersection:"∩"> => MathematicalSymbol::Intersection,
+}
+
+Union: MathematicalSymbol = {
+    <union:"∪"> => MathematicalSymbol::Union,
+}
+
+Integral: MathematicalSymbol = {
+    <integral:"∫"> => MathematicalSymbol::Integral,
+}
+
+Sum: MathematicalSymbol = {
+    <sum:"∑"> => MathematicalSymbol::Sum,
+}
+
+Therefore: MathematicalSymbol = {
+    <therefore:"∴"> => MathematicalSymbol::Therefore,
+}
+
+Because: MathematicalSymbol = {
+    <because:"∵"> => MathematicalSymbol::Because,
+}
+
+ApproximatelyEqual: MathematicalSymbol = {
+    <approximately_equal:"≈"> => MathematicalSymbol::ApproximatelyEqual,
+}
+
+NotApproximatelyEqual: MathematicalSymbol = {
+    <not_approximately_equal:"≉"> => MathematicalSymbol::NotApproximatelyEqual,
+}
+
+IdenticalTo: MathematicalSymbol = {
+    <identical_to:"≡"> => MathematicalSymbol::IdenticalTo,
+}
+
+NotIdenticalTo: MathematicalSymbol = {
+    <not_identical_to:"≢"> => MathematicalSymbol::NotIdenticalTo,
+}
+
+SubsetOf: MathematicalSymbol = {
+    <subset_of:"⊂"> => MathematicalSymbol::SubsetOf,
+}
+
+NotSubsetOf: MathematicalSymbol = {
+    <not_subset_of:"⊄"> => MathematicalSymbol::NotSubsetOf,
+}
+
+SubsetOfOrEqualTo: MathematicalSymbol = {
+    <subset_of_or_equal_to:"⊆"> => MathematicalSymbol::SubsetOfOrEqualTo,
+}
+
+SupersetOf: MathematicalSymbol = {
+    <superset_of:"⊃"> => MathematicalSymbol::SupersetOf,
+}
+
+NotSupersetOf: MathematicalSymbol = {
+    <not_superset_of:"⊅"> => MathematicalSymbol::NotSupersetOf,
+}
+
+SupersetOfOrEqualTo: MathematicalSymbol = {
+    <superset_of_or_equal_to:"⊇"> => MathematicalSymbol::SupersetOfOrEqualTo,
+}
+
+///////////////////////////////////////
+// Superscript and Subscript Symbols //
+///////////////////////////////////////
+
+pub(crate) SuperscriptIntegerLiteral: SuperscriptIntegerLiteral = {
+<superscript_decimal_digits:SuperscriptDecimalDigit+> => {
+        let mut result = 0;
+        let mut superscript_decimal_digits = superscript_decimal_digits;
+        superscript_decimal_digits.reverse();
+
+        for (i, superscript_decimal_digit) in superscript_decimal_digits.iter().enumerate() {
+            result += superscript_decimal_digit.digit * 10i8.pow(i as u32);
+        }
+        // if result is larger than u128::MAX, then it is an error
+        // if result > u128::MAX {
+        //     panic!("Integer literal is too large");
+        // }
+        return SuperscriptIntegerLiteral {
+            n: result as i8,
+        }
+    }
+}
+
+pub(crate) SuperscriptDecimalDigit: SuperscriptDecimalDigit = {
+    <superscript_decimal_digit:r"⁰|¹|²|³|⁴|⁵|⁶|⁷|⁸|⁹"> => {
+        SuperscriptDecimalDigit {
+            digit: match superscript_decimal_digit {
+                "⁰" => 0,
+                "¹" => 1,
+                "²" => 2,
+                "³" => 3,
+                "⁴" => 4,
+                "⁵" => 5,
+                "⁶" => 6,
+                "⁷" => 7,
+                "⁸" => 8,
+                "⁹" => 9,
+                _ => unreachable!(),
+            }
+        }
+    },
+}
+
+pub(crate) SuperscriptPunctuation: SuperscriptPunctuation = {
+    <superscript_plus:SuperscriptPlus> => superscript_plus,
+    <superscript_minus:SuperscriptMinus> => superscript_minus,
+    <superscript_left_paren:SuperscriptLeftParen> => superscript_left_paren,
+    <superscript_right_paren:SuperscriptRightParen> => superscript_right_paren,
+}
+
+SuperscriptPlusOrMinusSign: SuperscriptPunctuation = {
+    <superscript_plus:SuperscriptPlus> => superscript_plus,
+    <superscript_minus:SuperscriptMinus> => superscript_minus,
+}
+
+SuperscriptPlus: SuperscriptPunctuation = {
+    <superscript_plus:"⁺"> => SuperscriptPunctuation::Plus,
+}
+
+SuperscriptMinus: SuperscriptPunctuation = {
+    <superscript_minus:"⁻"> => SuperscriptPunctuation::Minus,
+}
+
+SuperscriptLeftParen: SuperscriptPunctuation = {
+    <superscript_left_paren:"⁽"> => SuperscriptPunctuation::LeftParen,
+}
+
+SuperscriptRightParen: SuperscriptPunctuation = {
+    <superscript_right_paren:"⁾"> => SuperscriptPunctuation::RightParen,
+}
+
+// pub(crate) SuperscriptDecimalDigitOrUnderscore: SuperscriptDecimalDigitOrUnderscore = {
+//     <superscript_decimal_digit:SuperscriptDecimalDigit> => superscript_decimal_digit.digit,
+//     <superscript_underscore:"ⁿ"> => '_',
+// }
+
+// pub(crate) SubscriptZero: SubscriptSymbol = {
+//     <subscript_zero:"₀"> => SubscriptSymbol::Zero,
+// }
+
+// pub(crate) SubscriptOne: SubscriptSymbol = {
+//     <subscript_one:"₁"> => SubscriptSymbol::One,
+// }
+
+// pub(crate) SubscriptTwo: SubscriptSymbol = {
+//     <subscript_two:"₂"> => SubscriptSymbol::Two,
+// }
+
+// pub(crate) SubscriptThree: SubscriptSymbol = {
+//     <subscript_three:"₃"> => SubscriptSymbol::Three,
+// }
+
+// pub(crate) SubscriptFour: SubscriptSymbol = {
+//     <subscript_four:"₄"> => SubscriptSymbol::Four,
+// }
+
+// pub(crate) SubscriptFive: SubscriptSymbol = {
+//     <subscript_five:"₅"> => SubscriptSymbol::Five,
+// }
+
+// pub(crate) SubscriptSix: SubscriptSymbol = {
+//     <subscript_six:"₆"> => SubscriptSymbol::Six,
+// }
+
+// pub(crate) SubscriptSeven: SubscriptSymbol = {
+//     <subscript_seven:"₇"> => SubscriptSymbol::Seven,
+// }
+
+// pub(crate) SubscriptEight: SubscriptSymbol = {
+//     <subscript_eight:"₈"> => SubscriptSymbol::Eight,
+// }
+
+// pub(crate) SubscriptNine: SubscriptSymbol = {
+//     <subscript_nine:"₉"> => SubscriptSymbol::Nine,
+// }
+
+// pub(crate) SubscriptPlus: SubscriptSymbol = {
+//     <subscript_plus:"₊"> => SubscriptSymbol::Plus,
+// }
+
+// pub(crate) SubscriptMinus: SubscriptSymbol = {
+//     <subscript_minus:"₋"> => SubscriptSymbol::Minus,
+// }
+
+// pub(crate) SubscriptLeftParen: SubscriptSymbol = {
+//     <subscript_left_paren:"₍"> => SubscriptSymbol::LeftParen,
+// }
+
+// pub(crate) SubscriptRightParen: SubscriptSymbol = {
+//     <subscript_right_paren:"₎"> => SubscriptSymbol::RightParen,
+// }
+
 /////////////////////////////
 // Delimiter symbol tokens //
 /////////////////////////////
 
-pub(crate) LeftParen: Delimiter = {
+pub(crate) Delimiter: Delimiter = {
+    <left_paren:LeftParen> => left_paren,
+    <right_paren:RightParen> => right_paren,
+    <left_brace:LeftBrace> => left_brace,
+    <right_brace:RightBrace> => right_brace,
+    <left_bracket:LeftBracket> => left_bracket,
+    <right_bracket:RightBracket> => right_bracket,
+}
+
+LeftParen: Delimiter = {
     <left_paren:"("> => Delimiter::LeftParen,
 }
-pub(crate) RightParen: Delimiter = {
+RightParen: Delimiter = {
     <right_paren:")"> => Delimiter::RightParen,
 }
 
-pub(crate) LeftBracket: Delimiter = {
+LeftBracket: Delimiter = {
     <left_bracket:"["> => Delimiter::LeftBracket,
 }
 
-pub(crate) RightBracket: Delimiter = {
+RightBracket: Delimiter = {
     <right_bracket:"]"> => Delimiter::RightBracket,
 }
 
-pub(crate) LeftBrace: Delimiter = {
+LeftBrace: Delimiter = {
     <left_brace:"{"> => Delimiter::LeftBrace,
 }
 
-pub(crate) RightBrace: Delimiter = {
+RightBrace: Delimiter = {
     <right_brace:"}"> => Delimiter::RightBrace,
 }
 

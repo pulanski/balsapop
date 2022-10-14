@@ -907,6 +907,10 @@ mod lexer_test_suite {
             Ok(Punctuation::NotEqual)
         );
         assert_eq!(
+            parser::NotEqualParser::new().parse("≠"),
+            Ok(Punctuation::NotEqual)
+        );
+        assert_eq!(
             parser::LessThanParser::new().parse("<"),
             Ok(Punctuation::LessThan)
         );
@@ -1008,27 +1012,27 @@ mod lexer_test_suite {
     #[test]
     fn test_lex_delimiters() {
         assert_eq!(
-            parser::LeftParenParser::new().parse("("),
+            parser::DelimiterParser::new().parse("("),
             Ok(Delimiter::LeftParen)
         );
         assert_eq!(
-            parser::RightParenParser::new().parse(")"),
+            parser::DelimiterParser::new().parse(")"),
             Ok(Delimiter::RightParen)
         );
         assert_eq!(
-            parser::LeftBracketParser::new().parse("["),
+            parser::DelimiterParser::new().parse("["),
             Ok(Delimiter::LeftBracket)
         );
         assert_eq!(
-            parser::RightBracketParser::new().parse("]"),
+            parser::DelimiterParser::new().parse("]"),
             Ok(Delimiter::RightBracket)
         );
         assert_eq!(
-            parser::LeftBraceParser::new().parse("{"),
+            parser::DelimiterParser::new().parse("{"),
             Ok(Delimiter::LeftBrace)
         );
         assert_eq!(
-            parser::RightBraceParser::new().parse("}"),
+            parser::DelimiterParser::new().parse("}"),
             Ok(Delimiter::RightBrace)
         );
     }
@@ -1322,6 +1326,270 @@ mod lexer_test_suite {
     }
 
     #[test]
+    fn test_lex_superscript_numeric_literals() {
+        // SuperscriptIntegerLiteral
+        assert_eq!(
+            parser::SuperscriptIntegerLiteralParser::new().parse("¹"),
+            Ok(SuperscriptIntegerLiteral { n: 1 })
+        );
+        assert_eq!(
+            parser::SuperscriptIntegerLiteralParser::new().parse("¹²"),
+            Ok(SuperscriptIntegerLiteral { n: 12 })
+        );
+
+        // SuperscriptDecimalDigit = "⁰" | "¹" | "²" | "³" | "⁴" | "⁵" | "⁶" | "⁷" | "⁸" | "⁹"
+        assert_eq!(
+            parser::SuperscriptDecimalDigitParser::new().parse("⁰"),
+            Ok(SuperscriptDecimalDigit { digit: 0 })
+        );
+        assert_eq!(
+            parser::SuperscriptDecimalDigitParser::new().parse("¹"),
+            Ok(SuperscriptDecimalDigit { digit: 1 })
+        );
+        assert_eq!(
+            parser::SuperscriptDecimalDigitParser::new().parse("²"),
+            Ok(SuperscriptDecimalDigit { digit: 2 })
+        );
+        assert_eq!(
+            parser::SuperscriptDecimalDigitParser::new().parse("³"),
+            Ok(SuperscriptDecimalDigit { digit: 3 })
+        );
+        assert_eq!(
+            parser::SuperscriptDecimalDigitParser::new().parse("⁴"),
+            Ok(SuperscriptDecimalDigit { digit: 4 })
+        );
+        assert_eq!(
+            parser::SuperscriptDecimalDigitParser::new().parse("⁵"),
+            Ok(SuperscriptDecimalDigit { digit: 5 })
+        );
+        assert_eq!(
+            parser::SuperscriptDecimalDigitParser::new().parse("⁶"),
+            Ok(SuperscriptDecimalDigit { digit: 6 })
+        );
+        assert_eq!(
+            parser::SuperscriptDecimalDigitParser::new().parse("⁷"),
+            Ok(SuperscriptDecimalDigit { digit: 7 })
+        );
+        assert_eq!(
+            parser::SuperscriptDecimalDigitParser::new().parse("⁸"),
+            Ok(SuperscriptDecimalDigit { digit: 8 })
+        );
+        assert_eq!(
+            parser::SuperscriptDecimalDigitParser::new().parse("⁹"),
+            Ok(SuperscriptDecimalDigit { digit: 9 })
+        );
+    }
+
+    #[test]
+    fn test_lex_superscript_punctuation() {
+        // SuperscriptPunctuation = "⁺" | "⁻" | "⁽" | "⁾"
+        assert_eq!(
+            parser::SuperscriptPunctuationParser::new().parse("⁺"),
+            Ok(SuperscriptPunctuation::Plus)
+        );
+        assert_eq!(
+            parser::SuperscriptPunctuationParser::new().parse("⁻"),
+            Ok(SuperscriptPunctuation::Minus)
+        );
+        assert_eq!(
+            parser::SuperscriptPunctuationParser::new().parse("⁽"),
+            Ok(SuperscriptPunctuation::LeftParen)
+        );
+        assert_eq!(
+            parser::SuperscriptPunctuationParser::new().parse("⁾"),
+            Ok(SuperscriptPunctuation::RightParen)
+        );
+    }
+
+    #[test]
+    fn test_lex_subscript_symbols() {
+
+    }
+
+    #[test]
+    fn test_lex_mathematical_symbols() {
+        // Powers (e.g. 2²)
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("¹²"),
+            Ok(MathematicalSymbol::Power { exponent: 12 })
+        );
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("⁻⁵³"),
+            Ok(MathematicalSymbol::Power { exponent: -53 })
+        );
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("⁺⁵³"),
+            Ok(MathematicalSymbol::Power { exponent: 53 })
+        );
+
+        // Roots (e.g. ²√4 = 2)
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("√"),
+            Ok(MathematicalSymbol::Root { exponent: 2 })
+        );
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("²√"),
+            Ok(MathematicalSymbol::Root { exponent: 2 })
+        );
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("¹²√"),
+            Ok(MathematicalSymbol::Root { exponent: 12 })
+        );
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("⁻⁵³√"),
+            Ok(MathematicalSymbol::Root { exponent: -53 })
+        );
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("⁺⁵³√"),
+            Ok(MathematicalSymbol::Root { exponent: 53 })
+        );
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("∛"),
+            Ok(MathematicalSymbol::Root { exponent: 3 })
+        );
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("∜"),
+            Ok(MathematicalSymbol::Root { exponent: 4 })
+        );
+
+        // Fractions (e.g. 1//2 = ½)
+
+        // General Mathematical Symbols (e.g. ÷, ∫, etc.)
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("÷"),
+            Ok(MathematicalSymbol::Division)
+        );
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("∝"),
+            Ok(MathematicalSymbol::ProportionalTo)
+        );
+        // assert_eq!(
+        //     parser::MathematicalSymbolParser::new().parse("∠"),
+        //     Ok(MathematicalSymbol::Angle)
+        // );
+        // assert_eq!(
+        //     parser::MathematicalSymbolParser::new().parse("∧"),
+        //     Ok(MathematicalSymbol::LogicalAnd)
+        // );
+        // assert_eq!(
+        //     parser::MathematicalSymbolParser::new().parse("∨"),
+        //     Ok(MathematicalSymbol::LogicalOr)
+        // );
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("∩"),
+            Ok(MathematicalSymbol::Intersection)
+        );
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("∪"),
+            Ok(MathematicalSymbol::Union)
+        );
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("∫"),
+            Ok(MathematicalSymbol::Integral)
+        );
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("∴"),
+            Ok(MathematicalSymbol::Therefore)
+        );
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("∵"),
+            Ok(MathematicalSymbol::Because)
+        );
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("≈"),
+            Ok(MathematicalSymbol::ApproximatelyEqual)
+        );
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("≉"),
+            Ok(MathematicalSymbol::NotApproximatelyEqual)
+        );
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("≡"),
+            Ok(MathematicalSymbol::IdenticalTo)
+        );
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("≢"),
+            Ok(MathematicalSymbol::NotIdenticalTo)
+        );
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("⊂"),
+            Ok(MathematicalSymbol::SubsetOf)
+        );
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("⊃"),
+            Ok(MathematicalSymbol::SupersetOf)
+        );
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("⊆"),
+            Ok(MathematicalSymbol::SubsetOfOrEqualTo)
+        );
+        assert_eq!(
+            parser::MathematicalSymbolParser::new().parse("⊇"),
+            Ok(MathematicalSymbol::SupersetOfOrEqualTo)
+        );
+        // assert_eq!(
+        //     parser::MathematicalSymbolParser::new().parse("⊕"),
+        //     Ok(MathematicalSymbol::Plus)
+        // );
+        // assert_eq!(
+        //     parser::MathematicalSymbolParser::new().parse("⊖"),
+        //     Ok(MathematicalSymbol::Minus)
+        // );
+        // assert_eq!(
+        //     parser::MathematicalSymbolParser::new().parse("⊗"),
+        //     Ok(MathematicalSymbol::Multiplication)
+        // );
+        // assert_eq!(
+        //     parser::MathematicalSymbolParser::new().parse("⊘"),
+        //     Ok(MathematicalSymbol::Division)
+        // );
+        // assert_eq!(
+        //     parser::MathematicalSymbolParser::new().parse("⊙"),
+        //     Ok(MathematicalSymbol::Circle)
+        // );
+        // assert_eq!(
+        //     parser::MathematicalSymbolParser::new().parse("⊥"),
+        //     Ok(MathematicalSymbol::Perpendicular)
+        // );
+        // assert_eq!(
+        //     parser::MathematicalSymbolParser::new().parse("⋅"),
+        //     Ok(MathematicalSymbol::Dot)
+        // );
+        // assert_eq!(
+        //     parser::MathematicalSymbolParser::new().parse("⋯"),
+        //     Ok(MathematicalSymbol::HorizontalEllipsis)
+        // );
+        // assert_eq!(
+        //     parser::MathematicalSymbolParser::new().parse("⌈"),
+        //     Ok(MathematicalSymbol::LeftCeiling)
+        // );
+        // assert_eq!(
+        //     parser::MathematicalSymbolParser::new().parse("⌉"),
+        //     Ok(MathematicalSymbol::RightCeiling)
+        // );
+        // assert_eq!(
+        //     parser::MathematicalSymbolParser::new().parse("⌊"),
+        //     Ok(MathematicalSymbol::LeftFloor)
+        // );
+        // assert_eq!(
+        //     parser::MathematicalSymbolParser::new().parse("⌋"),
+        //     Ok(MathematicalSymbol::RightFloor)
+        // );
+        // assert_eq!(
+        //     parser::MathematicalSymbolParser::new().parse("〈"),
+        //     Ok(MathematicalSymbol::LeftPointingAngleBracket)
+        // );
+        // assert_eq!(
+        //     parser::MathematicalSymbolParser::new().parse("〉"),
+        //     Ok(MathematicalSymbol::RightPointingAngleBracket)
+        // );
+
+        // TODO refactor to SuperScriptSymbol (e.g. ², ³, ⁴, ⁵, ⁶, ⁷, ⁸, ⁹)
+        // and SubScriptSymbol (e.g. ₀, ₁, ₂, ₃, ₄, ₅, ₆, ₇, ₈, ₉)
+        // and PowerParser (e.g. 10² -> 10^2, 10⁴³ -> 10^43
+    }
+
+    #[test]
     fn test_lex_character_and_string_literals() {
         // Apostrophe
         assert_eq!(parser::ApostropheParser::new().parse("'"), Ok('\''));
@@ -1359,6 +1627,10 @@ mod lexer_test_suite {
             parser::FalseParser::new().parse("false"),
             Ok(Keyword::False)
         );
+        assert_eq!(
+            parser::FalseParser::new().parse("False"),
+            Ok(Keyword::False)
+        );
         assert_eq!(parser::FnParser::new().parse("fn"), Ok(Keyword::Fn));
         assert_eq!(parser::ForParser::new().parse("for"), Ok(Keyword::For));
         assert_eq!(parser::IfParser::new().parse("if"), Ok(Keyword::If));
@@ -1368,6 +1640,14 @@ mod lexer_test_suite {
         assert_eq!(
             parser::MatchParser::new().parse("match"),
             Ok(Keyword::Match)
+        );
+        assert_eq!(
+            parser::MissingParser::new().parse("missing"),
+            Ok(Keyword::Missing)
+        );
+        assert_eq!(
+            parser::MissingParser::new().parse("Missing"),
+            Ok(Keyword::Missing)
         );
         assert_eq!(parser::ModParser::new().parse("mod"), Ok(Keyword::Mod));
         assert_eq!(parser::PubParser::new().parse("pub"), Ok(Keyword::Pub));
@@ -1400,6 +1680,7 @@ mod lexer_test_suite {
             Ok(Keyword::Trait)
         );
         assert_eq!(parser::TrueParser::new().parse("true"), Ok(Keyword::True));
+        assert_eq!(parser::TrueParser::new().parse("True"), Ok(Keyword::True));
         assert_eq!(parser::TypeParser::new().parse("type"), Ok(Keyword::Type));
         assert_eq!(parser::UseParser::new().parse("use"), Ok(Keyword::Use));
         assert_eq!(
@@ -1711,6 +1992,34 @@ mod lexer_test_suite {
 
         // - Outer block doc comments
         // /**  - Outer block doc (exactly) 2 asterisks */
+    }
+
+    #[test]
+    fn test_lex_logic_literals() {
+        assert_eq!(
+            parser::LogicLiteralParser::new().parse("true"),
+            Ok(LogicLiteral::True { value: true })
+        );
+        assert_eq!(
+            parser::LogicLiteralParser::new().parse("True"),
+            Ok(LogicLiteral::True { value: true })
+        );
+        assert_eq!(
+            parser::LogicLiteralParser::new().parse("false"),
+            Ok(LogicLiteral::False { value: false })
+        );
+        assert_eq!(
+            parser::LogicLiteralParser::new().parse("False"),
+            Ok(LogicLiteral::False { value: false })
+        );
+        assert_eq!(
+            parser::LogicLiteralParser::new().parse("missing"),
+            Ok(LogicLiteral::Missing)
+        );
+        assert_eq!(
+            parser::LogicLiteralParser::new().parse("Missing"),
+            Ok(LogicLiteral::Missing)
+        );
     }
 
     // fn test_lex_paths() {
