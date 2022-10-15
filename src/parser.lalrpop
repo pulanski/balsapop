@@ -335,14 +335,6 @@ pub(crate) UnicodeEscapePrefix: String = {
     },
 }
 
-pub(crate) Apostrophe: char = {
-    <apostrophe:"'"> => apostrophe.chars().next().unwrap(),
-}
-
-pub(crate) Quote: char = {
-    <quote:"\""> => quote.chars().next().unwrap(),
-}
-
 // TODO maybe in the future refactor to incorporating the following
 // into the parsing strategy of String and Charater literals
 
@@ -364,6 +356,14 @@ pub(crate) Quote: char = {
 
 StringLiteral: String = {
     <s:r#""[^"]*""#> => s.to_string()[1..s.len() - 1].to_string(),
+}
+
+// STRING_CONTINUE :
+//    \ followed by \n
+pub(crate) StringContinue: String = {
+    <left_backslash:Backslash> <newline:Newline> => {
+        return String::from("\n");
+    },
 }
 
 ///////////////////////////////
@@ -829,6 +829,29 @@ pub(crate) InnerBlockDocComment: String = {
 //     // },
 // }
 
+// Identifier
+
+// Identifier : IdentifierStart IdentifierPart*
+// pub(crate) Identifier: String = {
+//     <ident:IdentifierStart> <rest:IdentifierPart*> => {
+//         let mut ident = String::from(ident);
+//         for part in rest {
+//             ident.push_str(part);
+//         }
+//         ident
+//     },
+// }
+
+// IdentifierStart : [a-zA-Z_]
+// pub(crate) IdentifierStart: String = {
+//     <ident:r"[a-zA-Z_]"> => String::from(ident),
+// }
+
+// IdentifierPart : [a-zA-Z0-9_]
+// pub(crate) IdentifierPart: String = {
+//     <ident:r"[a-zA-Z0-9_]"> => String::from(ident),
+// }
+
 //////////////////
 // LogicLiteral //
 //////////////////
@@ -836,8 +859,6 @@ pub(crate) InnerBlockDocComment: String = {
 // Supports Three-valued Logic (https://en.wikipedia.org/wiki/Three-valued_logic) with a loose syntax for better ease of use and lower learning curve when coming from different families of languages.
 // LogicLiteral : "true" | "false" | "missing" | "True" | "False" | "Missing"
 pub(crate) LogicLiteral: LogicLiteral = {
-    // TODO LowerTrue | UpperTrue | LowerFalse | UpperFalse | LowerMissing | UpperMissing in the future in terminals lexed via the lexer
-
     // Integrala..b()
     <true_terminal:True> => LogicLiteral::True {
         value: true,
@@ -846,182 +867,6 @@ pub(crate) LogicLiteral: LogicLiteral = {
         value: false,
     },
     <lower_missing:Missing> => LogicLiteral::Missing,
-}
-
-///////////////////////////////
-// Punctuation symbol tokens //
-///////////////////////////////
-
-pub(crate) Plus: Punctuation = {
-    <plus:"+"> => Punctuation::Plus,
-}
-
-pub(crate) Minus: Punctuation = {
-    <minus:"-"> => Punctuation::Minus,
-}
-
-pub(crate) Star: Punctuation = {
-    <star:"*"> => Punctuation::Star,
-}
-
-pub(crate) Slash: Punctuation = {
-    <slash:"/"> => Punctuation::Slash,
-}
-
-pub(crate) Backslash: Punctuation = {
-    <backslash:"\\"> => Punctuation::Backslash,
-}
-
-pub(crate) Percent: Punctuation = {
-    <percent:"%"> => Punctuation::Percent,
-}
-
-pub(crate) Caret: Punctuation = {
-    <caret:"^"> => Punctuation::Caret,
-}
-
-pub(crate) Not: Punctuation = {
-    <not:"!"> => Punctuation::Not,
-}
-
-pub(crate) And: Punctuation = {
-    <and:"&"> => Punctuation::And,
-}
-
-pub(crate) Or: Punctuation = {
-    <or:"|"> => Punctuation::Or,
-}
-
-pub(crate) AndAnd: Punctuation = {
-    <and_and:"&&"> => Punctuation::AndAnd,
-}
-
-pub(crate) OrOr: Punctuation = {
-    <or_or:"||"> => Punctuation::OrOr,
-}
-
-pub(crate) PlusEquals: Punctuation = {
-    <plus_equals:"+="> => Punctuation::PlusEquals,
-}
-
-pub(crate) MinusEquals: Punctuation = {
-    <minus_equals:"-="> => Punctuation::MinusEquals,
-}
-
-pub(crate) StarEquals: Punctuation = {
-    <star_equals:"*="> => Punctuation::StarEquals,
-}
-
-pub(crate) SlashEquals: Punctuation = {
-    <slash_equals:"/="> => Punctuation::SlashEquals,
-}
-
-pub(crate) PercentEquals: Punctuation = {
-    <percent_equals:"%="> => Punctuation::PercentEquals,
-}
-
-pub(crate) CaretEquals: Punctuation = {
-    <caret_equals:"^="> => Punctuation::CaretEquals,
-}
-
-pub(crate) AndEquals: Punctuation = {
-    <and_equals:"&="> => Punctuation::AndEquals,
-}
-
-pub(crate) OrEquals: Punctuation = {
-    <or_equals:"|="> => Punctuation::OrEquals,
-}
-
-pub(crate) Equals: Punctuation = {
-    <equals:"="> => Punctuation::Equals,
-}
-
-pub(crate) DoubleEquals: Punctuation = {
-    <double_equals:"=="> => Punctuation::DoubleEquals,
-}
-
-pub(crate) NotEqual: Punctuation = {
-    <not_equal:r"!=|≠"> => Punctuation::NotEqual,
-}
-
-pub(crate) LessThan: Punctuation = {
-    <less_than:"<"> => Punctuation::LessThan,
-}
-
-pub(crate) LessThanEqual: Punctuation = {
-    <less_than_equal:r"<=|≤"> => Punctuation::LessThanEqual,
-}
-
-pub(crate) GreaterThan: Punctuation = {
-    <greater_than:">"> => Punctuation::GreaterThan,
-}
-
-pub(crate) GreaterThanEqual: Punctuation = {
-    <greater_than_equal:r">=|≥"> => Punctuation::GreaterThanEqual,
-}
-
-pub(crate) Underscore: Punctuation = {
-    <underscore:"_"> => Punctuation::Underscore,
-}
-
-pub(crate) Dot: Punctuation = {
-    <dot:"."> => Punctuation::Dot,
-}
-
-pub(crate) DotDot: Punctuation = {
-    <dot_dot:".."> => Punctuation::DotDot,
-}
-
-pub(crate) DotDotDot: Punctuation = {
-    <dot_dot_dot:"..."> => Punctuation::DotDotDot,
-}
-
-pub(crate) DotDotEquals: Punctuation = {
-    <dot_dot_equals:"..="> => Punctuation::DotDotEquals,
-}
-
-pub(crate) Comma: Punctuation = {
-    <comma:","> => Punctuation::Comma,
-}
-
-pub(crate) Colon: Punctuation = {
-    <colon:":"> => Punctuation::Colon,
-}
-
-pub(crate) Semicolon: Punctuation = {
-    <semicolon:";"> => Punctuation::Semicolon,
-}
-
-pub(crate) PathSeparator: Punctuation = {
-    <path_separator:"::"> => Punctuation::PathSeparator,
-}
-
-pub(crate) RightArrow: Punctuation = {
-    <right_arrow:r"->|→"> => Punctuation::RightArrow,
-}
-
-pub(crate) LeftArrow: Punctuation = {
-    <left_arrow:r"<-|←"> => Punctuation::LeftArrow,
-}
-
-pub(crate) FatRightArrow: Punctuation = {
-    <fat_right_arrow:r"=>|⇒"> => Punctuation::FatRightArrow,
-}
-
-pub(crate) FatLeftArrow: Punctuation = {
-    <fat_left_arrow:r"⇐"> => Punctuation::FatLeftArrow,
-}
-
-pub(crate) Pound: Punctuation = {
-    <pound:"#"> => Punctuation::Pound,
-}
-
-pub(crate) Dollar: Punctuation = {
-    <dollar:"$"> => Punctuation::Dollar,
-}
-
-pub(crate) Question: Punctuation = {
-    <question:"?"> => Punctuation::Question,
 }
 
 //////////////////////////
@@ -1303,6 +1148,238 @@ SuperscriptRightParen: SuperscriptPunctuation = {
 //     <subscript_right_paren:"₎"> => SubscriptSymbol::RightParen,
 // }
 
+///////////////////////////////
+// Punctuation symbol tokens //
+///////////////////////////////
+
+pub(crate) Punctuation: Punctuation = {
+    <plus:Plus> => plus,
+    <minus:Minus> => minus,
+    <star:Star> => star,
+    <slash:Slash> => slash,
+    <backslash:Backslash> => backslash,
+    <percent:Percent> => percent,
+    <caret:Caret> => caret,
+    <not:Not> => not,
+    <and:And> => and,
+    <or:Or> => or,
+    <and_and:AndAnd> => and_and,
+    <or_or:OrOr> => or_or,
+    <plus_equals:PlusEquals> => plus_equals,
+    <minus_equals:MinusEquals> => minus_equals,
+    <star_equals:StarEquals> => star_equals,
+    <slash_equals:SlashEquals> => slash_equals,
+    <percent_equals:PercentEquals> => percent_equals,
+    <caret_equals:CaretEquals> => caret_equals,
+    <and_equals:AndEquals> => and_equals,
+    <or_equals:OrEquals> => or_equals,
+    <equals:Equals> => equals,
+    <double_equals:DoubleEquals> => double_equals,
+    <not_equal:NotEqual> => not_equal,
+    <less_than:LessThan> => less_than,
+    <less_than_equal:LessThanEqual> => less_than_equal,
+    <greater_than:GreaterThan> => greater_than,
+    <greater_than_equal:GreaterThanEqual> => greater_than_equal,
+    <underscore:Underscore> => underscore,
+    <dot:Dot> => dot,
+    <dot_dot:DotDot> => dot_dot,
+    <dot_dot_dot:DotDotDot> => dot_dot_dot,
+    <dot_dot_equals:DotDotEquals> => dot_dot_equals,
+    <comma:Comma> => comma,
+    <colon:Colon> => colon,
+    <semicolon:Semicolon> => semicolon,
+    <path_separator:PathSeparator> => path_separator,
+    <right_arrow:RightArrow> => right_arrow,
+    <left_arrow:LeftArrow> => left_arrow,
+    <fat_right_arrow:FatRightArrow> => fat_right_arrow,
+    <fat_left_arrow:FatLeftArrow> => fat_left_arrow,
+    <pound:Pound> => pound,
+    <dollar:Dollar> => dollar,
+    <question:Question> => question,
+    <apostrophe:Apostrophe> => apostrophe,
+    <quote:Quote> => quote,
+}
+
+Plus: Punctuation = {
+    <plus:"+"> => Punctuation::Plus,
+}
+
+Minus: Punctuation = {
+    <minus:"-"> => Punctuation::Minus,
+}
+
+Star: Punctuation = {
+    <star:"*"> => Punctuation::Star,
+}
+
+Slash: Punctuation = {
+    <slash:"/"> => Punctuation::Slash,
+}
+
+Backslash: Punctuation = {
+    <backslash:"\\"> => Punctuation::Backslash,
+}
+
+Percent: Punctuation = {
+    <percent:"%"> => Punctuation::Percent,
+}
+
+Caret: Punctuation = {
+    <caret:"^"> => Punctuation::Caret,
+}
+
+Not: Punctuation = {
+    <not:"!"> => Punctuation::Not,
+}
+
+And: Punctuation = {
+    <and:"&"> => Punctuation::And,
+}
+
+Or: Punctuation = {
+    <or:"|"> => Punctuation::Or,
+}
+
+AndAnd: Punctuation = {
+    <and_and:"&&"> => Punctuation::AndAnd,
+}
+
+OrOr: Punctuation = {
+    <or_or:"||"> => Punctuation::OrOr,
+}
+
+PlusEquals: Punctuation = {
+    <plus_equals:"+="> => Punctuation::PlusEquals,
+}
+
+MinusEquals: Punctuation = {
+    <minus_equals:"-="> => Punctuation::MinusEquals,
+}
+
+StarEquals: Punctuation = {
+    <star_equals:"*="> => Punctuation::StarEquals,
+}
+
+SlashEquals: Punctuation = {
+    <slash_equals:"/="> => Punctuation::SlashEquals,
+}
+
+PercentEquals: Punctuation = {
+    <percent_equals:"%="> => Punctuation::PercentEquals,
+}
+
+CaretEquals: Punctuation = {
+    <caret_equals:"^="> => Punctuation::CaretEquals,
+}
+
+AndEquals: Punctuation = {
+    <and_equals:"&="> => Punctuation::AndEquals,
+}
+
+OrEquals: Punctuation = {
+    <or_equals:"|="> => Punctuation::OrEquals,
+}
+
+Equals: Punctuation = {
+    <equals:"="> => Punctuation::Equals,
+}
+
+DoubleEquals: Punctuation = {
+    <double_equals:"=="> => Punctuation::DoubleEquals,
+}
+
+NotEqual: Punctuation = {
+    <not_equal:r"!=|≠"> => Punctuation::NotEqual,
+}
+
+LessThan: Punctuation = {
+    <less_than:"<"> => Punctuation::LessThan,
+}
+
+LessThanEqual: Punctuation = {
+    <less_than_equal:r"<=|≤"> => Punctuation::LessThanEqual,
+}
+
+GreaterThan: Punctuation = {
+    <greater_than:">"> => Punctuation::GreaterThan,
+}
+
+GreaterThanEqual: Punctuation = {
+    <greater_than_equal:r">=|≥"> => Punctuation::GreaterThanEqual,
+}
+
+Underscore: Punctuation = {
+    <underscore:"_"> => Punctuation::Underscore,
+}
+
+Dot: Punctuation = {
+    <dot:"."> => Punctuation::Dot,
+}
+
+DotDot: Punctuation = {
+    <dot_dot:".."> => Punctuation::DotDot,
+}
+
+DotDotDot: Punctuation = {
+    <dot_dot_dot:"..."> => Punctuation::DotDotDot,
+}
+
+DotDotEquals: Punctuation = {
+    <dot_dot_equals:"..="> => Punctuation::DotDotEquals,
+}
+
+Comma: Punctuation = {
+    <comma:","> => Punctuation::Comma,
+}
+
+Colon: Punctuation = {
+    <colon:":"> => Punctuation::Colon,
+}
+
+Semicolon: Punctuation = {
+    <semicolon:";"> => Punctuation::Semicolon,
+}
+
+PathSeparator: Punctuation = {
+    <path_separator:"::"> => Punctuation::PathSeparator,
+}
+
+RightArrow: Punctuation = {
+    <right_arrow:r"->|→"> => Punctuation::RightArrow,
+}
+
+LeftArrow: Punctuation = {
+    <left_arrow:r"<-|←"> => Punctuation::LeftArrow,
+}
+
+FatRightArrow: Punctuation = {
+    <fat_right_arrow:r"=>|⇒"> => Punctuation::FatRightArrow,
+}
+
+FatLeftArrow: Punctuation = {
+    <fat_left_arrow:r"⇐"> => Punctuation::FatLeftArrow,
+}
+
+Pound: Punctuation = {
+    <pound:"#"> => Punctuation::Pound,
+}
+
+Dollar: Punctuation = {
+    <dollar:"$"> => Punctuation::Dollar,
+}
+
+Question: Punctuation = {
+    <question:"?"> => Punctuation::Question,
+}
+
+Apostrophe: Punctuation = {
+    <apostrophe:"'"> => Punctuation::Apostrophe,
+}
+
+Quote: Punctuation = {
+    <quote:"\""> => Punctuation::Quote,
+}
+
 /////////////////////////////
 // Delimiter symbol tokens //
 /////////////////////////////
@@ -1339,10 +1416,48 @@ RightBrace: Delimiter = {
     <right_brace:"}"> => Delimiter::RightBrace,
 }
 
+////////////////
+// Whitespace //
+////////////////
+
+// <space:Space> => space,
+pub(crate) Whitespace: Whitespace = {
+    <tab:Tab> => tab,
+    <newline:Newline> => newline,
+    <carriage_return:CarriageReturn> => carriage_return,
+    <vertical_tab:VerticalTab> => vertical_tab,
+    <form_feed:FormFeed> => form_feed,
+}
+
+// Space: Whitespace = {
+//     r"\u0020" => Whitespace::Space,
+// }
+
+Tab: Whitespace = {
+    <tab:"\t"> => Whitespace::Tab,
+}
+
+Newline: Whitespace = {
+    <newline:"\n"> => Whitespace::Newline,
+}
+
+CarriageReturn: Whitespace = {
+    <carriage_return:"\r"> => Whitespace::CarriageReturn,
+}
+
+VerticalTab: Whitespace = {
+    <vertical_tab:r"\v"> => Whitespace::VerticalTab,
+}
+
+FormFeed: Whitespace = {
+    <form_feed:r"\f"> => Whitespace::FormFeed,
+}
+
 match {
-    r"\s*" => {}, // ignore whitespace
+    r" " => {}, // ignore spaces
+    // r"\s*" => {}, // ignore whitespace
+    // r"[\t\r]*" => {}, // ignore whitespace
     // r"//.*" => {}, // ignore comments
-    // r"//[^\n\r]*[\n\r]*" => {}, // ignore comments
     // This `_` means "add in all the other strings and
     // regular expressions in the grammer here" (e.g.,
     // `(`).

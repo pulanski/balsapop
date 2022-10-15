@@ -169,7 +169,6 @@ mod cli_usage_test_suite {
 
 // TODO Have sections like the following
 // NonTerminals (e.g. Expression, Statement, etc.)
-// Terminals (e.g. Identifier, Number, etc.)
 #[cfg(test)]
 mod parser_test_suite {
     use super::*;
@@ -832,180 +831,209 @@ mod lexer_test_suite {
 
     #[test]
     fn test_lex_punctuation() {
-        assert_eq!(parser::PlusParser::new().parse("+"), Ok(Punctuation::Plus));
         assert_eq!(
-            parser::MinusParser::new().parse("-"),
+            parser::PunctuationParser::new().parse("+"),
+            Ok(Punctuation::Plus)
+        );
+        assert_eq!(
+            parser::PunctuationParser::new().parse("-"),
             Ok(Punctuation::Minus)
         );
-        assert_eq!(parser::StarParser::new().parse("*"), Ok(Punctuation::Star));
         assert_eq!(
-            parser::SlashParser::new().parse("/"),
+            parser::PunctuationParser::new().parse("*"),
+            Ok(Punctuation::Star)
+        );
+        assert_eq!(
+            parser::PunctuationParser::new().parse("/"),
             Ok(Punctuation::Slash)
         );
         assert_eq!(
-            parser::BackslashParser::new().parse("\\"),
+            parser::PunctuationParser::new().parse("\\"),
             Ok(Punctuation::Backslash)
         );
         assert_eq!(
-            parser::PercentParser::new().parse("%"),
+            parser::PunctuationParser::new().parse("%"),
             Ok(Punctuation::Percent)
         );
         assert_eq!(
-            parser::CaretParser::new().parse("^"),
+            parser::PunctuationParser::new().parse("^"),
             Ok(Punctuation::Caret)
         );
-        assert_eq!(parser::NotParser::new().parse("!"), Ok(Punctuation::Not));
-        assert_eq!(parser::AndParser::new().parse("&"), Ok(Punctuation::And));
-        assert_eq!(parser::OrParser::new().parse("|"), Ok(Punctuation::Or));
         assert_eq!(
-            parser::AndAndParser::new().parse("&&"),
+            parser::PunctuationParser::new().parse("!"),
+            Ok(Punctuation::Not)
+        );
+        assert_eq!(
+            parser::PunctuationParser::new().parse("&"),
+            Ok(Punctuation::And)
+        );
+        assert_eq!(
+            parser::PunctuationParser::new().parse("|"),
+            Ok(Punctuation::Or)
+        );
+        assert_eq!(
+            parser::PunctuationParser::new().parse("&&"),
             Ok(Punctuation::AndAnd)
         );
-        assert_eq!(parser::OrOrParser::new().parse("||"), Ok(Punctuation::OrOr));
         assert_eq!(
-            parser::PlusEqualsParser::new().parse("+="),
+            parser::PunctuationParser::new().parse("||"),
+            Ok(Punctuation::OrOr)
+        );
+        assert_eq!(
+            parser::PunctuationParser::new().parse("+="),
             Ok(Punctuation::PlusEquals)
         );
         assert_eq!(
-            parser::MinusEqualsParser::new().parse("-="),
+            parser::PunctuationParser::new().parse("-="),
             Ok(Punctuation::MinusEquals)
         );
         assert_eq!(
-            parser::StarEqualsParser::new().parse("*="),
+            parser::PunctuationParser::new().parse("*="),
             Ok(Punctuation::StarEquals)
         );
         assert_eq!(
-            parser::SlashEqualsParser::new().parse("/="),
+            parser::PunctuationParser::new().parse("/="),
             Ok(Punctuation::SlashEquals)
         );
         assert_eq!(
-            parser::PercentEqualsParser::new().parse("%="),
+            parser::PunctuationParser::new().parse("%="),
             Ok(Punctuation::PercentEquals)
         );
         assert_eq!(
-            parser::CaretEqualsParser::new().parse("^="),
+            parser::PunctuationParser::new().parse("^="),
             Ok(Punctuation::CaretEquals)
         );
         assert_eq!(
-            parser::AndEqualsParser::new().parse("&="),
+            parser::PunctuationParser::new().parse("&="),
             Ok(Punctuation::AndEquals)
         );
         assert_eq!(
-            parser::OrEqualsParser::new().parse("|="),
+            parser::PunctuationParser::new().parse("|="),
             Ok(Punctuation::OrEquals)
         );
         assert_eq!(
-            parser::EqualsParser::new().parse("="),
+            parser::PunctuationParser::new().parse("="),
             Ok(Punctuation::Equals)
         );
         assert_eq!(
-            parser::DoubleEqualsParser::new().parse("=="),
+            parser::PunctuationParser::new().parse("=="),
             Ok(Punctuation::DoubleEquals)
         );
         assert_eq!(
-            parser::NotEqualParser::new().parse("!="),
+            parser::PunctuationParser::new().parse("!="),
             Ok(Punctuation::NotEqual)
         );
         assert_eq!(
-            parser::NotEqualParser::new().parse("≠"),
+            parser::PunctuationParser::new().parse("≠"),
             Ok(Punctuation::NotEqual)
         );
         assert_eq!(
-            parser::LessThanParser::new().parse("<"),
+            parser::PunctuationParser::new().parse("<"),
             Ok(Punctuation::LessThan)
         );
         assert_eq!(
-            parser::LessThanEqualParser::new().parse("<="),
+            parser::PunctuationParser::new().parse("<="),
             Ok(Punctuation::LessThanEqual)
         );
         assert_eq!(
-            parser::LessThanEqualParser::new().parse("≤"),
+            parser::PunctuationParser::new().parse("≤"),
             Ok(Punctuation::LessThanEqual)
         );
         assert_eq!(
-            parser::GreaterThanParser::new().parse(">"),
+            parser::PunctuationParser::new().parse(">"),
             Ok(Punctuation::GreaterThan)
         );
         assert_eq!(
-            parser::GreaterThanEqualParser::new().parse(">="),
+            parser::PunctuationParser::new().parse(">="),
             Ok(Punctuation::GreaterThanEqual)
         );
         assert_eq!(
-            parser::GreaterThanEqualParser::new().parse("≥"),
+            parser::PunctuationParser::new().parse("≥"),
             Ok(Punctuation::GreaterThanEqual)
         );
         assert_eq!(
-            parser::UnderscoreParser::new().parse("_"),
+            parser::PunctuationParser::new().parse("_"),
             Ok(Punctuation::Underscore)
         );
-        assert_eq!(parser::DotParser::new().parse("."), Ok(Punctuation::Dot));
         assert_eq!(
-            parser::DotDotParser::new().parse(".."),
+            parser::PunctuationParser::new().parse("."),
+            Ok(Punctuation::Dot)
+        );
+        assert_eq!(
+            parser::PunctuationParser::new().parse(".."),
             Ok(Punctuation::DotDot)
         );
         assert_eq!(
-            parser::DotDotDotParser::new().parse("..."),
+            parser::PunctuationParser::new().parse("..."),
             Ok(Punctuation::DotDotDot)
         );
         assert_eq!(
-            parser::DotDotEqualsParser::new().parse("..="),
+            parser::PunctuationParser::new().parse("..="),
             Ok(Punctuation::DotDotEquals)
         );
         assert_eq!(
-            parser::CommaParser::new().parse(","),
+            parser::PunctuationParser::new().parse(","),
             Ok(Punctuation::Comma)
         );
         assert_eq!(
-            parser::SemicolonParser::new().parse(";"),
+            parser::PunctuationParser::new().parse(";"),
             Ok(Punctuation::Semicolon)
         );
         assert_eq!(
-            parser::ColonParser::new().parse(":"),
+            parser::PunctuationParser::new().parse(":"),
             Ok(Punctuation::Colon)
         );
         assert_eq!(
-            parser::PathSeparatorParser::new().parse("::"),
+            parser::PunctuationParser::new().parse("::"),
             Ok(Punctuation::PathSeparator)
         );
         assert_eq!(
-            parser::RightArrowParser::new().parse("->"),
+            parser::PunctuationParser::new().parse("->"),
             Ok(Punctuation::RightArrow)
         );
         assert_eq!(
-            parser::RightArrowParser::new().parse("→"),
+            parser::PunctuationParser::new().parse("→"),
             Ok(Punctuation::RightArrow)
         );
         assert_eq!(
-            parser::LeftArrowParser::new().parse("<-"),
+            parser::PunctuationParser::new().parse("<-"),
             Ok(Punctuation::LeftArrow)
         );
         assert_eq!(
-            parser::LeftArrowParser::new().parse("←"),
+            parser::PunctuationParser::new().parse("←"),
             Ok(Punctuation::LeftArrow)
         );
         assert_eq!(
-            parser::FatRightArrowParser::new().parse("=>"),
+            parser::PunctuationParser::new().parse("=>"),
             Ok(Punctuation::FatRightArrow)
         );
         assert_eq!(
-            parser::FatRightArrowParser::new().parse("⇒"),
+            parser::PunctuationParser::new().parse("⇒"),
             Ok(Punctuation::FatRightArrow)
         );
         assert_eq!(
-            parser::FatLeftArrowParser::new().parse("⇐"),
+            parser::PunctuationParser::new().parse("⇐"),
             Ok(Punctuation::FatLeftArrow)
         );
         assert_eq!(
-            parser::PoundParser::new().parse("#"),
+            parser::PunctuationParser::new().parse("#"),
             Ok(Punctuation::Pound)
         );
         assert_eq!(
-            parser::DollarParser::new().parse("$"),
+            parser::PunctuationParser::new().parse("$"),
             Ok(Punctuation::Dollar)
         );
         assert_eq!(
-            parser::QuestionParser::new().parse("?"),
+            parser::PunctuationParser::new().parse("?"),
             Ok(Punctuation::Question)
+        );
+        assert_eq!(
+            parser::PunctuationParser::new().parse("'"),
+            Ok(Punctuation::Apostrophe)
+        );
+        assert_eq!(
+            parser::PunctuationParser::new().parse("\""),
+            Ok(Punctuation::Quote)
         );
     }
 
@@ -1036,6 +1064,46 @@ mod lexer_test_suite {
             Ok(Delimiter::RightBrace)
         );
     }
+
+    // #[test]
+    // fn test_lex_identifiers() {
+    //     assert_eq!(
+    //         parser::IdentifierParser::new().parse("foo"),
+    //         Ok(Identifier { name: String::from("foo") })
+    //     );
+    //     assert_eq!(
+    //         parser::IdentifierParser::new().parse("foo_bar"),
+    //         Ok(Identifier { name: String::from("foo_bar") })
+    //     );
+    //     assert_eq!(
+    //         parser::IdentifierParser::new().parse("_identifier"),
+    //         Ok(Identifier { name: String::from("_identifier") })
+    //     );
+    //     assert_eq!(
+    //         parser::IdentifierParser::new().parse("Москва"),
+    //         Ok(Identifier { name: String::from("Москва") })
+    //     );
+    //     assert_eq!(
+    //         parser::IdentifierParser::new().parse("東京"),
+    //         Ok(Identifier { name: String::from("東京") })
+    //     );
+    //     assert_eq!(
+    //         parser::IdentifierParser::new().parse("भारत"),
+    //         Ok(Identifier { name: String::from("भारत") })
+    //     );
+    //     assert_eq!(
+    //         parser::IdentifierParser::new().parse("المملكة"),
+    //         Ok(Identifier { name: String::from("المملكة") })
+    //     );
+    //     assert_eq!(
+    //         parser::IdentifierParser::new().parse("Привет"),
+    //         Ok(Identifier { name: String::from("Привет") })
+    //     );
+    //     assert_eq!(
+    //         parser::IdentifierParser::new().parse("你好世界"),
+    //         Ok(Identifier { name: String::from("你好世界") })
+    //     );
+    // }
 
     #[test]
     fn test_lex_numeric_literals() {
@@ -1402,9 +1470,7 @@ mod lexer_test_suite {
     }
 
     #[test]
-    fn test_lex_subscript_symbols() {
-
-    }
+    fn test_lex_subscript_symbols() {}
 
     #[test]
     fn test_lex_mathematical_symbols() {
@@ -1591,11 +1657,40 @@ mod lexer_test_suite {
 
     #[test]
     fn test_lex_character_and_string_literals() {
-        // Apostrophe
-        assert_eq!(parser::ApostropheParser::new().parse("'"), Ok('\''));
 
-        // Quote
-        assert_eq!(parser::QuoteParser::new().parse("\""), Ok('"'));
+        // // Apostrophe
+        // assert_eq!(parser::ApostropheParser::new().parse("'"), Ok('\''));
+
+        // // Quote
+        // assert_eq!(parser::QuoteParser::new().parse("\""), Ok('"'));
+    }
+
+    #[test]
+    fn test_lex_whitespace() {
+        // assert_eq!(
+        //     parser::WhitespaceParser::new().parse(" "),
+        //     Ok(Whitespace::Space)
+        // );
+        assert_eq!(
+            parser::WhitespaceParser::new().parse("\t"),
+            Ok(Whitespace::Tab)
+        );
+        assert_eq!(
+            parser::WhitespaceParser::new().parse("\n"),
+            Ok(Whitespace::Newline)
+        );
+        assert_eq!(
+            parser::WhitespaceParser::new().parse("\r"),
+            Ok(Whitespace::CarriageReturn)
+        );
+        assert_eq!(
+            parser::WhitespaceParser::new().parse("\u{000B}"),
+            Ok(Whitespace::VerticalTab)
+        );
+        assert_eq!(
+            parser::WhitespaceParser::new().parse("\u{000C}"),
+            Ok(Whitespace::FormFeed)
+        );
     }
 
     #[test]
@@ -2023,30 +2118,30 @@ mod lexer_test_suite {
     }
 
     // fn test_lex_paths() {
-        // Simple path segments
-        // assert_eq!(
-        //     parser::SimplePathSegmentParser::new().parse("a"),
-        //     Ok(PathSegment::Simple(SimplePathSegment {
-        //         name: String::from("a"),
-        //     }))
-        // );
-        // assert_eq!(
-        //     parser::SimplePathSegmentParser::new().parse("super"),
-        //     Ok(SimplePathSegment::SuperSegment {
-        //         segment: String::from("super"),
-        //     })
-        // );
-        // assert_eq!(
-        //     parser::SimplePathSegmentParser::new().parse("self"),
-        //     Ok(SimplePathSegment::SelfValueSegment {
-        //         segment: String::from("self"),
-        //     })
-        // );
-        // assert_eq!(
-        //     parser::SimplePathSegmentParser::new().parse("crate"),
-        //     Ok(SimplePathSegment::CrateSegment {
-        //         segment: String::from("crate"),
-        //     })
-        // );
+    // Simple path segments
+    // assert_eq!(
+    //     parser::SimplePathSegmentParser::new().parse("a"),
+    //     Ok(PathSegment::Simple(SimplePathSegment {
+    //         name: String::from("a"),
+    //     }))
+    // );
+    // assert_eq!(
+    //     parser::SimplePathSegmentParser::new().parse("super"),
+    //     Ok(SimplePathSegment::SuperSegment {
+    //         segment: String::from("super"),
+    //     })
+    // );
+    // assert_eq!(
+    //     parser::SimplePathSegmentParser::new().parse("self"),
+    //     Ok(SimplePathSegment::SelfValueSegment {
+    //         segment: String::from("self"),
+    //     })
+    // );
+    // assert_eq!(
+    //     parser::SimplePathSegmentParser::new().parse("crate"),
+    //     Ok(SimplePathSegment::CrateSegment {
+    //         segment: String::from("crate"),
+    //     })
+    // );
     // }
 }

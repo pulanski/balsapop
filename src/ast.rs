@@ -175,6 +175,8 @@ pub enum Punctuation {
     Pound,
     Dollar,
     Question,
+    Apostrophe,
+    Quote,
 }
 
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
@@ -237,6 +239,11 @@ pub enum SuperscriptPunctuation {
 }
 
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub struct Identifier {
+    pub name: String,
+}
+
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct SimplePath {
     pub segments: Vec<SimplePathSegment>,
 }
@@ -245,10 +252,18 @@ pub struct SimplePath {
 pub enum SimplePathSegment {
     /// NOTE: naming is done in this manner to avoid conflicts with the
     /// keywords "crate", "self", and "super"
-    IdentifierSegment { segment: String },
-    SuperSegment { segment: String },
-    SelfValueSegment { segment: String },
-    CrateSegment { segment: String },
+    IdentifierSegment {
+        segment: String,
+    },
+    SuperSegment {
+        segment: String,
+    },
+    SelfValueSegment {
+        segment: String,
+    },
+    CrateSegment {
+        segment: String,
+    },
     // DollarCrate { segment: String },
 }
 
@@ -256,14 +271,15 @@ pub enum SimplePathSegment {
 pub enum LogicLiteral {
     True { value: bool },
     False { value: bool },
-    Missing
+    Missing,
 }
 
-// #[derive(Clone, Debug, PartialEq, PartialOrd)]
-// pub enum Whitespace {
-//     Space,
-//     Tab,
-//     Newline,
-//     CarriageReturn,
-//     LineFeed,
-// }
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub enum Whitespace {
+    Space,
+    Tab,
+    Newline,
+    CarriageReturn,
+    VerticalTab,
+    FormFeed,
+}
