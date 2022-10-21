@@ -24,266 +24,321 @@ extern {
 // Keywords (e.g. `as`, `if`, `else`, etc.) are not allowed as identifiers. //
 //////////////////////////////////////////////////////////////////////////////
 
-// "as"
-pub(crate) Abstract: Keyword = {
+pub(crate) Keyword: Keyword = {
+    <abstract_terminal:Abstract> => abstract_terminal,
+    <as_terminal:As> => as_terminal,
+    <async_terminal:Async> => async_terminal,
+    <await_terminal:Await> => await_terminal,
+    <break_terminal:Break> => break_terminal,
+    <const_terminal:Const> => const_terminal,
+    <continue_terminal:Continue> => continue_terminal,
+    <crate_terminal:Crate> => crate_terminal,
+    <do_terminal:Do> => do_terminal,
+    <dyn_terminal:Dyn> => dyn_terminal,
+    <else_terminal:Else> => else_terminal,
+    <enum_terminal:Enum> => enum_terminal,
+    <export_terminal:Export> => export_terminal,
+    <extern_terminal:Extern> => extern_terminal,
+    <false_terminal:False> => false_terminal,
+    <final_terminal:Final> => final_terminal,
+    <fn_terminal:Fn> => fn_terminal,
+    <for_terminal:For> => for_terminal,
+    <if_terminal:If> => if_terminal,
+    <impl_terminal:Impl> => impl_terminal,
+    <import_terminal:Import> => import_terminal,
+    <in_terminal:In> => in_terminal,
+    <let_terminal:Let> => let_terminal,
+    <loop_terminal:Loop> => loop_terminal,
+    <macro_terminal:Macro> => macro_terminal,
+    <match_terminal:Match> => match_terminal,
+    <missing_terminal:Missing> => missing_terminal,
+    <mod_terminal:Mod> => mod_terminal,
+    <move_terminal:Move> => move_terminal,
+    <mut_terminal:Mut> => mut_terminal,
+    <override_terminal:Override> => override_terminal,
+    <priv_terminal:Priv> => priv_terminal,
+    <proc_terminal:Proc> => proc_terminal,
+    <pub_terminal:Pub> => pub_terminal,
+    <ref_terminal:Ref> => ref_terminal,
+    <return_terminal:Return> => return_terminal,
+    <self_type_terminal:SelfType> => self_type_terminal,
+    <self_value_terminal:SelfValue> => self_value_terminal,
+    <static_terminal:Static> => static_terminal,
+    <struct_terminal:Struct> => struct_terminal,
+    <super_terminal:Super> => super_terminal,
+    <trait_terminal:Trait> => trait_terminal,
+    <true_terminal:True> => true_terminal,
+    <type_terminal:Type> => type_terminal,
+    <typeof_terminal:Typeof> => typeof_terminal,
+    <unsafe_terminal:Unsafe> => unsafe_terminal,
+    <unsized_terminal:Unsized> => unsized_terminal,
+    <use_terminal:Use> => use_terminal,
+    <virtual_terminal:Virtual> => virtual_terminal,
+    <where_terminal:Where> => where_terminal,
+    <while_terminal:While> => while_terminal,
+    <yield_terminal:Yield> => yield_terminal,
+}
+
+// "abstract"
+Abstract: Keyword = {
     "abstract" => Keyword::Reserved(ReservedKeyword::Abstract),
 }
 
 // "as"
-pub(crate) As: Keyword = {
+As: Keyword = {
     "as" => Keyword::As,
 }
 
 // "async"
-pub(crate) Async: Keyword = {
+Async: Keyword = {
     "async" => Keyword::Reserved(ReservedKeyword::Async),
 }
 
 // "await"
-pub(crate) Await: Keyword = {
+Await: Keyword = {
     "await" => Keyword::Reserved(ReservedKeyword::Await),
 }
 
 // "break"
-pub(crate) Break: Keyword = {
+Break: Keyword = {
     "break" => Keyword::Break,
 }
 
 // "const"
-pub(crate) Const: Keyword = {
+Const: Keyword = {
     "const" => Keyword::Const,
 }
 
 // "continue"
-pub(crate) Continue: Keyword = {
+Continue: Keyword = {
     "continue" => Keyword::Continue,
 }
 
 // "crate"
-pub(crate) Crate: Keyword = {
+Crate: Keyword = {
     "crate" => Keyword::Reserved(ReservedKeyword::Crate),
 }
 
 // "do"
-pub(crate) Do: Keyword = {
+Do: Keyword = {
     "do" => Keyword::Reserved(ReservedKeyword::Do),
 }
 
 // "dyn"
-pub(crate) Dyn: Keyword = {
+Dyn: Keyword = {
     "dyn" => Keyword::Reserved(ReservedKeyword::Dyn),
 }
 
 // "else"
-pub(crate) Else: Keyword = {
+Else: Keyword = {
     "else" => Keyword::Else,
 }
 
 // "enum"
-pub(crate) Enum: Keyword = {
+Enum: Keyword = {
     "enum" => Keyword::Enum,
 }
 
 // "export"
-pub(crate) Export: Keyword = {
+Export: Keyword = {
     "export" => Keyword::Reserved(ReservedKeyword::Export),
 }
 
 // "extern"
-pub(crate) Extern: Keyword = {
+Extern: Keyword = {
     "extern" => Keyword::Reserved(ReservedKeyword::Extern),
 }
 
 // "false" | "False"
-pub(crate) False: Keyword = {
+False: Keyword = {
     "false" => Keyword::False,
     "False" => Keyword::False,
 }
 
 // "final"
-pub(crate) Final: Keyword = {
+Final: Keyword = {
     "final" => Keyword::Reserved(ReservedKeyword::Final),
 }
 
 // "fn"
-pub(crate) Fn: Keyword = {
+Fn: Keyword = {
     "fn" => Keyword::Fn,
 }
 
 // "for"
-pub(crate) For: Keyword = {
+For: Keyword = {
     "for" => Keyword::For,
 }
 
 // "if"
-pub(crate) If: Keyword = {
+If: Keyword = {
     "if" => Keyword::If,
 }
 
 // "impl"
-pub(crate) Impl: Keyword = {
+Impl: Keyword = {
     "impl" => Keyword::Impl,
 }
 
 // "import"
-pub(crate) Import: Keyword = {
+Import: Keyword = {
     "import" => Keyword::Reserved(ReservedKeyword::Import),
 }
 
 // "in"
-pub(crate) In: Keyword = {
+In: Keyword = {
     "in" => Keyword::In,
 }
 
 // "let"
-pub(crate) Let: Keyword = {
+Let: Keyword = {
     "let" => Keyword::Reserved(ReservedKeyword::Let),
 }
 
 // "loop"
-pub(crate) Loop: Keyword = {
+Loop: Keyword = {
     "loop" => Keyword::Loop,
 }
 
 // "macro"
-pub(crate) Macro: Keyword = {
+Macro: Keyword = {
     "macro" => Keyword::Reserved(ReservedKeyword::Macro),
 }
 
 // "match"
-pub(crate) Match: Keyword = {
+Match: Keyword = {
     "match" => Keyword::Match,
 }
 
 // "missing" | "Missing"
-pub(crate) Missing: Keyword = {
+Missing: Keyword = {
     "missing" => Keyword::Missing,
     "Missing" => Keyword::Missing,
 }
 
 // "mod"
-pub(crate) Mod: Keyword = {
+Mod: Keyword = {
     "mod" => Keyword::Mod,
 }
 
 // "move"
-pub(crate) Move: Keyword = {
+Move: Keyword = {
     "move" => Keyword::Reserved(ReservedKeyword::Move),
 }
 
 // "mut"
-pub(crate) Mut: Keyword = {
+Mut: Keyword = {
     "mut" => Keyword::Reserved(ReservedKeyword::Mut),
 }
 
 // "Override"
-pub(crate) Override: Keyword = {
+Override: Keyword = {
     "override" => Keyword::Reserved(ReservedKeyword::Override),
 }
 
 // "priv"
-pub(crate) Priv: Keyword = {
+Priv: Keyword = {
     "priv" => Keyword::Reserved(ReservedKeyword::Priv),
 }
 
 // "proc"
-pub(crate) Proc: Keyword = {
+Proc: Keyword = {
     "proc" => Keyword::Reserved(ReservedKeyword::Proc),
 }
 
 // "pub"
-pub(crate) Pub: Keyword = {
+Pub: Keyword = {
     "pub" => Keyword::Pub,
 }
 
 // "ref"
-pub(crate) Ref: Keyword = {
+Ref: Keyword = {
     "ref" => Keyword::Reserved(ReservedKeyword::Ref),
 }
 
 // "return"
-pub(crate) Return: Keyword = {
+Return: Keyword = {
     "return" => Keyword::Return,
 }
 
-// "self"
-pub(crate) SelfValue: Keyword = {
-    "self" => Keyword::SelfValue,
-}
-
 // "Self"
-pub(crate) SelfType: Keyword = {
+SelfType: Keyword = {
     "Self" => Keyword::SelfType,
 }
 
+// "self"
+SelfValue: Keyword = {
+    "self" => Keyword::SelfValue,
+}
+
 // "static"
-pub(crate) Static: Keyword = {
+Static: Keyword = {
     "static" => Keyword::Static,
 }
 
 // "struct"
-pub(crate) Struct: Keyword = {
+Struct: Keyword = {
     "struct" => Keyword::Struct,
 }
 
 // "super"
-pub(crate) Super: Keyword = {
+Super: Keyword = {
     "super" => Keyword::Super,
 }
 
 // "trait"
-pub(crate) Trait: Keyword = {
+Trait: Keyword = {
     "trait" => Keyword::Trait,
 }
 
-// "true"
-pub(crate) True: Keyword = {
+// "true" | "True"
+True: Keyword = {
     "true" => Keyword::True,
     "True" => Keyword::True,
 }
 
 // "type"
-pub(crate) Type: Keyword = {
+Type: Keyword = {
     "type" => Keyword::Type,
 }
 
 // "typeof"
-pub(crate) Typeof: Keyword = {
+Typeof: Keyword = {
     "typeof" => Keyword::Reserved(ReservedKeyword::Typeof),
 }
 
 // "unsafe"
-pub(crate) Unsafe: Keyword = {
+Unsafe: Keyword = {
     "unsafe" => Keyword::Reserved(ReservedKeyword::Unsafe),
 }
 
 // "unsized"
-pub(crate) Unsized: Keyword = {
+Unsized: Keyword = {
     "unsized" => Keyword::Reserved(ReservedKeyword::Unsized),
 }
 
 // "use"
-pub(crate) Use: Keyword = {
+Use: Keyword = {
     "use" => Keyword::Use,
 }
 
 // "virtual"
-pub(crate) Virtual: Keyword = {
+Virtual: Keyword = {
     "virtual" => Keyword::Reserved(ReservedKeyword::Virtual),
 }
 
 // "where"
-pub(crate) Where: Keyword = {
+Where: Keyword = {
     "where" => Keyword::Where,
 }
 
 // "while"
-pub(crate) While: Keyword = {
+While: Keyword = {
     "while" => Keyword::While,
 }
 
 // "yield"
-pub(crate) Yield: Keyword = {
+Yield: Keyword = {
     "yield" => Keyword::Reserved(ReservedKeyword::Yield),
 }
 
@@ -831,15 +886,10 @@ pub(crate) InnerBlockDocComment: String = {
 
 // Identifier
 
-// Identifier : IdentifierStart IdentifierPart*
+// Identifier : XID_Start XID_Continue*
+//    | _ XID_Continue+
 // pub(crate) Identifier: String = {
-//     <ident:IdentifierStart> <rest:IdentifierPart*> => {
-//         let mut ident = String::from(ident);
-//         for part in rest {
-//             ident.push_str(part);
-//         }
-//         ident
-//     },
+//     <ident:r"[[:alpha:]_][[:alnum:]_]*"> => String::from(ident),
 // }
 
 // IdentifierStart : [a-zA-Z_]
@@ -851,6 +901,8 @@ pub(crate) InnerBlockDocComment: String = {
 // pub(crate) IdentifierPart: String = {
 //     <ident:r"[a-zA-Z0-9_]"> => String::from(ident),
 // }
+
+// XID_Start : [[:alpha:]_]
 
 //////////////////
 // LogicLiteral //
