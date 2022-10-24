@@ -14,13 +14,13 @@ lint:
     enabled:
         - clippy@1.58.1
         - git-diff-check
-        - gitleaks@8.14.1
+        - gitleaks@8.15.0
         - markdownlint@0.32.2
         - prettier@2.7.1
         - rustfmt@1.58.1
         - taplo@release-taplo-cli-0.7.0
 cli:
-    version: 0.18.1-beta
+    version: 1.0.1
 plugins:
     sources:
         - id: trunk
