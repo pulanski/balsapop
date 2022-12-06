@@ -345,6 +345,8 @@ Yield: Keyword = {
 // IDENTIFIER_OR_KEYWORD :
 //       XID_Start XID_Continue*
 //    | _ XID_Continue+
+// TODO lexer/parser is erroring here when it comes to keywords inside of identifiers
+// FIXME e.g. `foobarfor` is being parsed as `foobar` and `for` and erroring
 pub(crate) Identifier: Identifier = {
     <xid_start:XidStart> <xid_continues:XidContinue*> => {
         let mut text = String::new();
