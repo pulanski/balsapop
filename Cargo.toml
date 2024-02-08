@@ -16,7 +16,7 @@ reedline = "0.13.0"
 miette = { version = "5.3.0", features = ["fancy"] }
 thiserror = "1.0.37"
 clap = { version = "4.0.9", features = ["derive"] }
-logos = "0.12.1"
+logos = "0.14.0"
 regex = "1.5.4"
 lalrpop-util = { version = "0.19.8", features = ["lexer"] }
 pretty_assertions = "1.3.0"
